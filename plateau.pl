@@ -54,6 +54,14 @@ plateau_test(
 		[32,33,34],
 		e
 	]).
+	
+plateau_test(
+	[
+		[(11,n),(12,s),(13,w),(14,e),(15,n)],
+		[(51,n),(52,s),(53,w),(54,e),(55,n)],
+		[0,33,34],
+		e
+	]).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -194,3 +202,38 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 				nombre_pieces_restantes(E,NbRhi), %Affiche le nombre de rhinocéros restants
 				write('Nombre de rhinocéros à faire entrer en jeu: '),
 				write(NbRhi), nl.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%Test fin de partie
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
+
+plateau_depart([
+		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+		[32,33,34],
+		e
+	]).
+	
+%dynamic(plateau_en_cours/1).
+%asserta(plateau_en_cours(P)).	
+	
+coup_possible(P, (D,A,O)) :- repeat,
+							write('Choisissez votre pion'),
+							nl,
+							read(D),
+							verifier_depart(D, P),!,
+							repeat,
+							write('Choisissez la case d\'arrivée'),
+							read(A),
+							verifier_arrivee(A, P),!,
+							write('Choisissez l\'orientation de votre pion'),
+							read(O),
+							verifier_orientation(O).
+		
+fin_partie([_,_,M,_]) :- montagne_out(M), !.
+fin_partie(_) :- fail.
+montagne_out([]) :- fail.
+montagne_out([M,_,_]) :- M = 0, !.
+montagne_out([_,M,_]) :- M = 0, !.
+montagne_out([_,_,M]) :- M = 0, !.
+montagne_out(_) :- fail.
