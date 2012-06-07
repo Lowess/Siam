@@ -1,97 +1,332 @@
-%Jouer coup
+%Joueurouer coup
 
 :- include('plateau.pl').
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %Vérifie que la case appartient au plateau
 case_valide(0).
-case_valide(C) :- 	C > 10, C < 56,
-			T is C mod 10,
+case_valide(Case) :- 	Case > 10, Case < 56,
+			T is Case mod 10,
 			T < 6, T > 0.
 		
-%Vérifie que le joueur manipule ses pions
-%position + joueur
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%Vérifie que le joueur manipule ses pions
+
 %Si joue les elephants
-verifier_depart(D,P) :-	case_valide(D),
-			afficher_joueur(P,J),
-			J=e,
-			elephant(P,D), 
-			!.
+verifier_depart(Depart,Plateau) :-	case_valide(Depart),
+					afficher_joueur(Plateau,Joueur),
+					Joueur=e,
+					elephant(Plateau,Depart), 
+					!.
 %Si joue les rhinoceros
-verifier_depart(D,P) :-	case_valide(D),
-			afficher_joueur(P,J),
-			J=r,
-			rhinoceros(P,D), 
-			!.
+verifier_depart(Depart,Plateau) :-	case_valide(Depart),
+					afficher_joueur(Plateau,Joueur),
+					Joueur=r,
+					rhinoceros(Plateau,Depart), 
+					!.
 
-verifier_depart(_,_) :-	fail.
+verifier_depart(_,_) :-	write('Vous n\'avez pas le droit de manipuler les pions de votre adversaire...'),
+			nl,
+			fail.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%Vérifie que la case arrivée est vide + coup autorisé
-%position + plateau
+%%Vérifie que la case arrivée est vide + coup autorisé
 
-verifier_entree_plateau(A) :-   Div is A // 10,
-				Div=5, !.
+verifier_entree_plateau(Arrivee) :-   	Depart is Arrivee // 10,
+					Depart=5, !.
 
-verifier_entree_plateau(A) :-   Div is A // 10,
-				Div=1, !.
+verifier_entree_plateau(Arrivee) :-   	Depart is Arrivee // 10,
+					Depart=1, !.
 
-verifier_entree_plateau(A) :-   Mod is A mod 10,
-				Mod=5, !.
+verifier_entree_plateau(Arrivee) :-   	Mod is Arrivee mod 10,
+					Mod=5, !.
 
-verifier_entree_plateau(A) :-   Mod is A mod 10,
-				Mod=1.
+verifier_entree_plateau(Arrivee) :-   	Mod is Arrivee mod 10,
+					Mod=1.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 verifier_deplacement_plateau(-1).
 verifier_deplacement_plateau(1).
 verifier_deplacement_plateau(-10).
 verifier_deplacement_plateau(10).
 
-%On ne peut pas passer son tour
-verifier_arrivee(0,0,_) :-	fail.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%Entrée sur plateau
-verifier_arrivee(0,A,P) :-	case_valide(A),!,
-				verifier_case_vide(A,P),
-				%On test maintenant la validité du coup
-				verifier_entree_plateau(A).
+%Orientationn ne peut pas passer son tour
+verifier_arrivee(0,0,_,_) :-	fail.
+
+%Entrée sur plateau avec poussée
+verifier_arrivee(0,Arrivee,Orientation,Plateau) :-	case_valide(Arrivee),
+							%test maintenant la validité du coup				
+							verifier_entree_plateau(Arrivee),
+							%vérifie que l'on pousse avec l'avant du pion
+							oriente_pour_pousser(0, Arrivee, Orientation),
+							%verifier que la poussée est valide
+							poussee_possible(Arrivee,Orientation,Plateau),
+							write(Orientation),!.
+
+%Entrée sur plateau sur une case vide
+verifier_arrivee(0,Arrivee,Orientation,Plateau) :-	case_valide(Arrivee),
+							verifier_case_vide(Arrivee,Plateau),
+							%test maintenant la validité du coup
+							verifier_entree_plateau(Arrivee).
 				
 				
+%Departéplacement sur une case vide
+verifier_arrivee(Depart,Arrivee,Orientation,Plateau) :-	case_valide(Arrivee),
+							verifier_case_vide(Arrivee,Plateau),
+							%Orientationn test maintenant la validité du coup
+							%Case Arrivee = Depart +/- 1 OU Depart +/- 10
+							Tmp is Depart-Arrivee,
+							verifier_deplacement_plateau(Tmp).
 
-verifier_arrivee(D,A,P) :-	case_valide(A),
-				verifier_case_vide(A,P).
-				%On test maintenant la validité du coup
-				%Case A = D +/- 1 OU D +/- 10
-				Tmp is D-A,
-				verifier_deplacement_plateau(Tmp).
 
-
-				
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Vérifie que la case ne contient rien
-verifier_case_vide(C,P) :- 	\+ elephant(P,C),
-				\+ rhinoceros(P,C),
-				\+ montagne(P,C).
+verifier_case_vide(Case,Plateau) :- 	\+ elephant(Plateau,Case),
+					\+ rhinoceros(Plateau,Case),
+					\+ montagne(Plateau,Case).
 
-%coup_possible(Plateau, (D,A,O)) :- 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Retourne vrai si les orientations sont opposées
+orientation_opposee(n,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+					O=s.
+orientation_opposee(s,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+					O=n.
+orientation_opposee(w,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+					O=e.
+orientation_opposee(e,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+					O=w.
+
+%Retourne vrai si les orientations sont identiques
+orientation_identique(Orientation,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+							Orientation=O.
+
+%Conditions d'arrets:
+% 	--> 1) On arrive sur une case vide alors la File de poussée est terminée
+%	--> 2) On sort du plateau
+genere_liste_force_masse(Case, _, Plateau, (0,0)):- verifier_case_vide(Case,Plateau).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%Poussée vers le NORD
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	--> Poussée d'une montagne
+genere_liste_force_masse(Case, n, Plateau, (Force,NewMasse)):- 
+	montagne(Plateau, Case),
+	CaseSuivante is Case + 10,
+	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, Masse)),
+	NewMasse is Masse + 1.
+
+%	--> Poussée d'un animal avec des forces qui s'opposent Ex e--> <--e
+genere_liste_force_masse(Case, n, Plateau, (NewForce,Masse)):- 
+	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
+	orientation_opposee(n,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est opposée à la mienne
+	CaseSuivante is Case + 10,
+	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, Masse)),
+	NewForce is Force - 1.
+
+%	--> Poussée d'un animal avec des forces qui s'ajoute e--> e-->
+genere_liste_force_masse(Case, n, Plateau, (NewForce,Masse)):- 
+	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
+	orientation_identique(n,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est la meme que la mienne
+	CaseSuivante is Case + 10,
+	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, Masse)),
+	NewForce is Force + 1.
+
+%									 ^
+%	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
+%									 v
+genere_liste_force_masse(Case, n, Plateau, (Force,Masse)):- 
+	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
+	%\+orientation_identique(n,Case, Plateau), %Orientation du pion ni opposée ni identique
+	%\+orientation_opposee(n,Case, Plateau), %Orientation du pion ni opposée ni identique
+	CaseSuivante is Case + 10,
+	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, Masse)).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%Poussée vers le SUD
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	--> Poussée d'une montagne
+genere_liste_force_masse(Case, s, Plateau, (Force,NewMasse)):- 
+	montagne(Plateau, Case),
+	CaseSuivante is Case - 10,
+	genere_liste_force_masse(CaseSuivante, s, Plateau, (Force, Masse)),
+	NewMasse is Masse + 1.
+
+%	--> Poussée d'un animal avec des forces qui s'opposent Ex e--> <--e
+genere_liste_force_masse(Case, s, Plateau, (NewForce,Masse)):- 
+	orientation_opposee(s,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est opposée à la mienne
+	CaseSuivante is Case - 10,
+	genere_liste_force_masse(CaseSuivante, s, Plateau, (Force, Masse)),
+	NewForce is Force - 1.
+
+%	--> Poussée d'un animal avec des forces qui s'ajoute e--> e-->
+genere_liste_force_masse(Case, s, Plateau, (NewForce,Masse)):- 
+	orientation_identique(s,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est la meme que la mienne
+	CaseSuivante is Case - 10,
+	genere_liste_force_masse(CaseSuivante, s, Plateau, (Force, Masse)),
+	NewForce is Force + 1.
+
+%									 ^
+%	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
+%									 v
+genere_liste_force_masse(Case, s, Plateau, (Force,Masse)):- 
+	CaseSuivante is Case - 10,
+	genere_liste_force_masse(CaseSuivante, s, Plateau, (Force, Masse)).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%Poussée vers l'WEST
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	--> Poussée d'une montagne
+genere_liste_force_masse(Case, w, Plateau, (Force,NewMasse)):- 
+	montagne(Plateau, Case),
+	CaseSuivante is Case - 1,
+	genere_liste_force_masse(CaseSuivante, w, Plateau, (Force, Masse)),
+	NewMasse is Masse + 1.
+
+%	--> Poussée d'un animal avec des forces qui s'opposent Ex e--> <--e
+genere_liste_force_masse(Case, w, Plateau, (NewForce,Masse)):- 
+	orientation_opposee(w,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est opposée à la mienne
+	CaseSuivante is Case - 1,
+	genere_liste_force_masse(CaseSuivante, w, Plateau, (Force, Masse)),
+	NewForce is Force - 1.
+
+%	--> Poussée d'un animal avec des forces qui s'ajoute e--> e-->
+genere_liste_force_masse(Case, w, Plateau, (NewForce,Masse)):- 
+	orientation_identique(w,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est la meme que la mienne
+	CaseSuivante is Case - 1,
+	genere_liste_force_masse(CaseSuivante, w, Plateau, (Force, Masse)),
+	NewForce is Force + 1.
+
+%									 ^
+%	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
+%									 v
+genere_liste_force_masse(Case, w, Plateau, (Force,Masse)):- 
+	CaseSuivante is Case - 1,
+	genere_liste_force_masse(CaseSuivante, w, Plateau, (Force, Masse)).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%Poussée vers l'EST
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	--> Poussée d'une montagne
+genere_liste_force_masse(Case, e, Plateau, (Force,NewMasse)):- 
+	montagne(Plateau, Case),
+	CaseSuivante is Case + 1,
+	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, Masse)),
+	NewMasse is Masse + 1.
+
+%	--> Poussée d'un animal avec des forces qui s'opposent Ex e--> <--e
+genere_liste_force_masse(Case, e, Plateau, (NewForce,Masse)):- 
+	orientation_opposee(e,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est opposée à la mienne
+	CaseSuivante is Case + 1,
+	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, Masse)),
+	NewForce is Force - 1.
+
+%	--> Poussée d'un animal avec des forces qui s'ajoute e--> e-->
+genere_liste_force_masse(Case, e, Plateau, (NewForce,Masse)):- 
+	orientation_identique(e,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est la meme que la mienne
+	CaseSuivante is Case + 1,
+	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, Masse)),
+	NewForce is Force + 1.
+
+%									 ^
+%	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
+%									 v
+genere_liste_force_masse(Case, e, Plateau, (Force,Masse)):- 
+	CaseSuivante is Case + 1,
+	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, Masse)).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Orienté pour pousser:
+%On ne peut pousser que par l'avant du pion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Entrée par un des 4 coins du plateau on peut pousser dans 2 directions
+oriente_pour_pousser(0, 11, n). % (C1)
+oriente_pour_pousser(0, 11, e).
+
+oriente_pour_pousser(0, 15, n).
+oriente_pour_pousser(0, 15, w).	% (C2)
+
+oriente_pour_pousser(0, 55, s).
+oriente_pour_pousser(0, 55, w). % (C3)
+
+oriente_pour_pousser(0, 51, s).
+oriente_pour_pousser(0, 51, e). % (C4)
+
+
+%Entrée par un bord du plateau (les 4 coins étant excluent car traité précédement)
+oriente_pour_pousser(0, 12, n).			%	(C4)		(4)		(C3)
+oriente_pour_pousser(0, 13, n). % (1)		%	---------------------------------
+oriente_pour_pousser(0, 14, n).			%	|				|
+						%	|				|
+						%	|				|
+oriente_pour_pousser(0, 21, w).			%	|				|
+oriente_pour_pousser(0, 31, w). % (2)		%	|				|
+oriente_pour_pousser(0, 41, w).			%	|				|
+						%   (2)	|	  PLATEAU DE JEU	| (3)
+						%	|				|
+oriente_pour_pousser(0, 25, s).			%	|				|
+oriente_pour_pousser(0, 35, s). % (3)		%	|				|
+oriente_pour_pousser(0, 45, s).			%	|				|
+						%	|				|
+oriente_pour_pousser(0, 52, s).			%	|				|
+oriente_pour_pousser(0, 53, s). % (4)		%	|				|
+oriente_pour_pousser(0, 54, s).			%	---------------------------------
+						%	(C1)		(1)		(C2)
+%oriente_pour_pousser(Depart, Arrivee, n) :-
+					    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Poussée Possible
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+poussee_possible(Case, Orientation, Plateau):-
+	genere_liste_force_masse(Case, Orientation, Plateau, (TmpForce,Masse)),
+	Force is TmpForce + 1,
+	write('Force :'), write(Force),nl,
+	write('Masse :'), write(Masse),
+	nl.
+
+%coup_possible(Plateau, (Depart,Arrivee,Orientation)) :- 
 							
 
 %Ex (0,11,n)
-%coup(Depart, Arrivee, Orientation).
+%coup(Departepart, Arriveerrivee, Orientationrientation).
 
-%jouer_coup(PlateauInitial, Coup, NouveauPlateau) :- 
+%jouer_coup(PlateauInitial, Caseoup, NouveauPlateau) :- 
 %dynamic (plateau_courant/1).
 
-%poussee_possible(Plateau, Case, Direction).
+%poussee_possible(Plateau, Case, Orientation).
 
 
 
 
 %setof
 
-%bagof(X,Y^,pere(X,Y),L). %On se fiche des Y
+%bagof(X,Y^,pere(X,Y),L). %Orientationn se fiche des Y
 
-%coups_possibles(Plateau, Coup). 
+%coups_possibles(Plateau, Case). 
 
 %Vérifier la syntaxe du coup
 %repeat laisse un point de choix donc si false il backtrack sur le point laissé
@@ -109,7 +344,7 @@ verifier_case_vide(C,P) :- 	\+ elephant(P,C),
 %Ne pas oublier pousser une piece hors du plateau il revient
 %dans la main du joueur
 
-%%On peut pousser en entrant
+%%Orientationn peut pousser en entrant
 
 %En cas de victoire c'est le joueur qui a le pion 
 

@@ -30,6 +30,13 @@
 %%%plateau_test
 % différents plateaux de siam possible en cours de partie
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+plateau_test(
+	[
+		[(11,n),(44,s),(13,w),(14,e),(15,n)],
+		[(21,e),(52,s),(53,w),(54,e),(55,n)],
+		[31,22,34],
+		e
+	]).
 
 plateau_test([
 		[(0,0),(0,0),(0,0),(0,0),(0,0)],
@@ -46,20 +53,11 @@ plateau_test(
 		e
 	]).
 
-
 plateau_test(
 	[
 		[(11,n),(12,s),(13,w),(14,e),(15,n)],
 		[(51,n),(52,s),(53,w),(54,e),(55,n)],
 		[32,33,34],
-		e
-	]).
-	
-plateau_test(
-	[
-		[(11,n),(12,s),(13,w),(14,e),(15,n)],
-		[(51,n),(52,s),(53,w),(54,e),(55,n)],
-		[0,33,34],
 		e
 	]).
 
@@ -163,6 +161,16 @@ afficher_orientation([E|_], C, O) :- 	member((C,O),E),
 
 afficher_orientation([_,R|_], C, O) :- 	member((C,O),R),
 					transcrit(O).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%Get Orientation
+%Retourne l'orientation d'un pion d'une case C
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+get_orientation([E|_], C, O) :- 	member((C,O),E), !.
+
+get_orientation([_,R|_], C, O) :- 	member((C,O),R), !.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Afficher joueur
