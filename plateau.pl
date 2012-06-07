@@ -33,8 +33,8 @@
 plateau_test(
 	[
 		[(11,n),(44,s),(13,w),(14,e),(15,n)],
-		[(21,e),(52,s),(53,w),(54,e),(55,n)],
-		[31,22,34],
+		[(35,w),(41,s),(53,w),(54,e),(55,n)],
+		[21,22,33],
 		e
 	]).
 
@@ -67,7 +67,7 @@ plateau_test(
 % Permet l'affichage de NbCases du plateau P
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-affiche_ligne(Numero, 0, P):- 	!.
+affiche_ligne(Numero, 0 , P):- 	!.
 
 affiche_ligne(Numero, NbCases, P):-	TmpCases is NbCases - 1,
 					affiche_ligne(Numero, TmpCases, P),						
@@ -170,7 +170,7 @@ afficher_orientation([_,R|_], C, O) :- 	member((C,O),R),
 
 get_orientation([E|_], C, O) :- 	member((C,O),E), !.
 
-get_orientation([_,R|_], C, O) :- 	member((C,O),R), !.
+get_orientation([_,R|_], C, O) :- 	member((C,O),R).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Afficher joueur
@@ -214,34 +214,44 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Test fin de partie
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
+/*
 
-plateau_depart([
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[32,33,34],
-		e
-	]).
-	
+	########################################
+	### ELEMENTS DEPLACES DANS humain.pl ###
+	########################################
+*/
+/*
+%dynamic(plateau_en_cours/1).
+%asserta(plateau_en_cours(P)).	
+
+%plateau_depart([
+%		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+%		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+%		[32,33,34],
+%		e
+%	]).
+%	
 %dynamic(plateau_en_cours/1).
 %asserta(plateau_en_cours(P)).	
 	
-coup_possible(P, (D,A,O)) :- repeat,
-							write('Choisissez votre pion'),
-							nl,
-							read(D),
-							verifier_depart(D, P),!,
-							repeat,
-							write('Choisissez la case d\'arrivée'),
-							read(A),
-							verifier_arrivee(A, P),!,
-							write('Choisissez l\'orientation de votre pion'),
-							read(O),
-							verifier_orientation(O).
-		
-fin_partie([_,_,M,_]) :- montagne_out(M), !.
-fin_partie(_) :- fail.
-montagne_out([]) :- fail.
-montagne_out([M,_,_]) :- M = 0, !.
-montagne_out([_,M,_]) :- M = 0, !.
-montagne_out([_,_,M]) :- M = 0, !.
-montagne_out(_) :- fail.
+%coup_possible(P, (D,A,O)) :- repeat,
+%							write('Choisissez votre pion'),
+%							nl,
+%							read(D),
+%							verifier_depart(D, P),!,
+%							repeat,
+%							write('Choisissez la case d\'arrivée'),
+%							read(A),
+%							verifier_arrivee(A, P),!,
+%							write('Choisissez l\'orientation de votre pion'),
+%							read(O),
+%							verifier_orientation(O).
+%
+%fin_partie([_,_,M,_]) :- montagne_out(M), !.
+%fin_partie(_) :- fail.
+%montagne_out([]) :- fail.
+%montagne_out([M,_,_]) :- M = 0, !.
+%montagne_out([_,M,_]) :- M = 0, !.
+%montagne_out([_,_,M]) :- M = 0, !.
+%montagne_out(_) :- fail.
+*/

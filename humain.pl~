@@ -83,10 +83,18 @@ verifier_arrivee(0,Arrivee,Orientation,Plateau) :-	case_valide(Arrivee),
 verifier_arrivee(0,Arrivee,Orientation,Plateau) :-	case_valide(Arrivee),
 							verifier_case_vide(Arrivee,Plateau),
 							%test maintenant la validité du coup
-							verifier_entree_plateau(Arrivee).
+							verifier_entree_plateau(Arrivee), !.
+
+%Déplacement sur plateau avec poussée
+verifier_arrivee(Depart,Arrivee,Orientation,Plateau) :-	case_valide(Arrivee),
+							%verifier que la poussée est valide
+							poussee_possible(Arrivee,Orientation,Plateau),
+							%Test la validité du coup
+							Tmp is Depart-Arrivee,
+							verifier_deplacement_plateau(Tmp).
+
 				
-				
-%Departéplacement sur une case vide
+%Déplacement sur une case vide
 verifier_arrivee(Depart,Arrivee,Orientation,Plateau) :-	case_valide(Arrivee),
 							verifier_case_vide(Arrivee,Plateau),
 							%Orientationn test maintenant la validité du coup
@@ -110,22 +118,32 @@ verifier_case_vide(Case,Plateau) :- 	\+ elephant(Plateau,Case),
 
 %Retourne vrai si les orientations sont opposées
 orientation_opposee(n,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+					!,
 					O=s.
 orientation_opposee(s,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+					!,
 					O=n.
 orientation_opposee(w,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+					!,
 					O=e.
 orientation_opposee(e,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+					!,
 					O=w.
 
 %Retourne vrai si les orientations sont identiques
 orientation_identique(Orientation,Case,Plateau) :- 	get_orientation(Plateau, Case, O),
+							!,
 							Orientation=O.
 
-%Conditions d'arrets:
+%Conditions d'arrets avec réussite de poussée:
 % 	--> 1) On arrive sur une case vide alors la File de poussée est terminée
 %	--> 2) On sort du plateau
-genere_liste_force_masse(Case, _, Plateau, (0,0)):- verifier_case_vide(Case,Plateau).
+
+% 1)
+genere_liste_force_masse(Case, _, Plateau, (0,0)):- verifier_case_vide(Case,Plateau), !.
+
+% 2)
+genere_liste_force_masse(Case, _, _, (0,0)):- \+ case_valide(Case), !.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%Poussée vers le NORD
@@ -263,38 +281,39 @@ genere_liste_force_masse(Case, e, Plateau, (Force,Masse)):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Entrée par un des 4 coins du plateau on peut pousser dans 2 directions
-oriente_pour_pousser(0, 11, n). % (C1)
-oriente_pour_pousser(0, 11, e).
+oriente_pour_pousser(0, 11, n):- !. % (C1)
+oriente_pour_pousser(0, 11, e):- !.
 
-oriente_pour_pousser(0, 15, n).
-oriente_pour_pousser(0, 15, w).	% (C2)
+oriente_pour_pousser(0, 15, n):- !.
+oriente_pour_pousser(0, 15, w):- !. % (C2)
 
-oriente_pour_pousser(0, 55, s).
-oriente_pour_pousser(0, 55, w). % (C3)
+oriente_pour_pousser(0, 55, s):- !.
+oriente_pour_pousser(0, 55, w):- !. % (C3)
 
-oriente_pour_pousser(0, 51, s).
-oriente_pour_pousser(0, 51, e). % (C4)
+oriente_pour_pousser(0, 51, s):- !.
+oriente_pour_pousser(0, 51, e):- !. % (C4)
 
 
 %Entrée par un bord du plateau (les 4 coins étant excluent car traité précédement)
-oriente_pour_pousser(0, 12, n).			%	(C4)		(4)		(C3)
-oriente_pour_pousser(0, 13, n). % (1)		%	---------------------------------
-oriente_pour_pousser(0, 14, n).			%	|				|
-						%	|				|
-						%	|				|
-oriente_pour_pousser(0, 21, w).			%	|				|
-oriente_pour_pousser(0, 31, w). % (2)		%	|				|
-oriente_pour_pousser(0, 41, w).			%	|				|
-						%   (2)	|	  PLATEAU DE JEU	| (3)
-						%	|				|
-oriente_pour_pousser(0, 25, s).			%	|				|
-oriente_pour_pousser(0, 35, s). % (3)		%	|				|
-oriente_pour_pousser(0, 45, s).			%	|				|
-						%	|				|
-oriente_pour_pousser(0, 52, s).			%	|				|
-oriente_pour_pousser(0, 53, s). % (4)		%	|				|
-oriente_pour_pousser(0, 54, s).			%	---------------------------------
-						%	(C1)		(1)		(C2)
+oriente_pour_pousser(0, 12, n):- !.			%	(C4)		(4)		(C3)
+oriente_pour_pousser(0, 13, n):- !. % (1)		%	---------------------------------
+oriente_pour_pousser(0, 14, n):- !.			%	|				|
+							%	|				|
+							%	|				|
+oriente_pour_pousser(0, 21, e):- !.			%	|				|
+oriente_pour_pousser(0, 31, e):- !. % (2)		%	|				|
+oriente_pour_pousser(0, 41, e):- !.			%	|				|
+							%   (2)	|	  PLATEAU DE JEU	| (3)
+							%	|				|
+oriente_pour_pousser(0, 25, w):- !.			%	|				|
+oriente_pour_pousser(0, 35, w):- !. % (3)		%	|				|
+oriente_pour_pousser(0, 45, w):- !.			%	|				|
+							%	|				|
+oriente_pour_pousser(0, 52, s):- !.			%	|				|
+oriente_pour_pousser(0, 53, s):- !. % (4)		%	|				|
+oriente_pour_pousser(0, 54, s):- !.			%	---------------------------------
+							%	(C1)		(1)		(C2)
+
 %oriente_pour_pousser(Depart, Arrivee, n) :-
 					    
 
@@ -302,14 +321,76 @@ oriente_pour_pousser(0, 54, s).			%	---------------------------------
 %% Poussée Possible
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 poussee_possible(Case, Orientation, Plateau):-
+	%On test si notre piece que l'on manipule est dans le sens opposée à la pièce de devant
+	orientation_opposee(Orientation, Case, Plateau),
+	
 	genere_liste_force_masse(Case, Orientation, Plateau, (TmpForce,Masse)),
-	Force is TmpForce + 1,
+
+	%Dans ce cas on perd en force
+	Force is TmpForce - 1,
+
+	%Test la validité de la poussée
+	test_force_masse(Force,Masse),
 	write('Force :'), write(Force),nl,
 	write('Masse :'), write(Masse),
-	nl.
+	nl, !.
 
-%coup_possible(Plateau, (Depart,Arrivee,Orientation)) :- 
+poussee_possible(Case, Orientation, Plateau):-
+	%Si notre piece que l'on manipule n'est pas opposée à la notre
+	
+	genere_liste_force_masse(Case, Orientation, Plateau, (TmpForce,Masse)),
+
+	%Dans ce cas on gagne en force
+	Force is TmpForce + 1,
+
+	%Test la validité de la poussée
+	test_force_masse(Force,Masse),
+	write('Force :'), write(Force),nl,
+	write('Masse :'), write(Masse),
+	nl, !.
+
+%Conditions d'arrets avec echec de poussée:
+% 	--> 1) (F > 0) AND (F >= M)
+test_force_masse(Force, Masse) :- 	Force > 0,
+					Force >= Masse.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Coup possible
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+plateau_depart([
+		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+		[32,33,34],
+		e
+	]).
+		
+coup_possible(Plateau, (Depart,Arrivee,Orientation)) :- verifier_arrivee(Depart, Arrivee, Orientation, Plateau),!.
+ 
+/*							
+							repeat,
+							write('Choisissez votre pion'),
+							nl,
+							read(Depart),
+							verifier_depart(Depart, Plateau),!,
+							repeat,
+							write('Choisissez la case d\'arrivée'),
+							read(Arrivee),
+							write('Choisissez l\'orientation de votre pion'),
+							read(Orientation),
+							verifier_arrivee(Depart, Arrivee, Orientation, Plateau),!.
+*/
 							
+fin_partie([_,_,M,_]) :- montagne_out(M), !.
+fin_partie(_) :- fail.
+
+montagne_out([]) :- fail.
+montagne_out([M,_,_]) :- M = 0, !.
+montagne_out([_,M,_]) :- M = 0, !.
+montagne_out([_,_,M]) :- M = 0, !.
+montagne_out(_) :- fail.
 
 %Ex (0,11,n)
 %coup(Departepart, Arriveerrivee, Orientationrientation).
@@ -344,7 +425,7 @@ poussee_possible(Case, Orientation, Plateau):-
 %Ne pas oublier pousser une piece hors du plateau il revient
 %dans la main du joueur
 
-%%Orientationn peut pousser en entrant
+%%Orientation peut pousser en entrant
 
 %En cas de victoire c'est le joueur qui a le pion 
 
