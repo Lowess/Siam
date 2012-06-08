@@ -54,33 +54,64 @@ verifier_arrivee(0,A,P) :-	case_valide(A),!,
 				verifier_case_vide(A,P),
 				%On test maintenant la validité du coup
 				verifier_entree_plateau(A).
-				
-				
+
+verifier_arrivee(A,A,P).				
 
 verifier_arrivee(D,A,P) :-	case_valide(A),
-				verifier_case_vide(A,P),
 				%On test maintenant la validité du coup
 				%Case A = D +/- 1 OU D +/- 10
 				Tmp is D-A,
-				verifier_deplacement_plateau(Tmp).
+				verifier_deplacement_plateau(Tmp),
+				verifier_case_vide(A,P),!.
 
-
-				
-
+%Si case depart et case arrivée valides mais arrivée non vide, joueur tente de pousser une pièce
+%Case d'arrivée valide, continuer en donnant orientation				
+verifier_arrivee(D,A,P): write('Case non vide : pour tenter une poussee, choisir orientation.').
 
 %Vérifie que la case ne contient rien
 verifier_case_vide(C,P) :- 	\+ elephant(P,C),
-				\+ rhinoceros(P,C),
-				\+ montagne(P,C).
+							\+ rhinoceros(P,C),
+							\+ montagne(P,C).
 
-%coup_possible(Plateau, (D,A,O)) :- 
+
+%Vérification de l'entrée d'une valeur correcte
+verifier_orientation(_,_,_, n).
+verifier_orientation(_,_,_, w).
+verifier_orientation(_,_,_, e).
+verifier_orientation(_,_,_, s).
+
+%Si le joueur décide de ne pas bouger son pion : obligation de changer son orientation							
+verifier_orientation(P, D, D, O) :- getOrientation(O, D),
+									\+ O = PreviousOrientation.
+
+%Si la destination de la pièce est l'extérieur du plateau, on se fiche de l'orientation.
+verifier_orientation(_,_,0,_).
+
+%Si le joueur décide de ne pas bouger son pion : obligation de changer son orientation
+verifier_orientation(P,D,A,O) :- 							
+							
+coup_possible(P, (D,A,O)) :- repeat,
+							write('Choisissez votre pion'),
+							nl,
+							read(D),
+							verifier_depart(D, P),!,
+							repeat,
+							write('Choisissez la case d\'arrivée'),
+							read(A),
+							verifier_arrivee(D, A, P),!,
+							write('Choisissez l\'orientation de votre pion'),
+							read(O),
+							verifier_orientation(P,D,A,O).
 							
 
 %Ex (0,11,n)
 %coup(Depart, Arrivee, Orientation).
 
 %jouer_coup(PlateauInitial, Coup, NouveauPlateau) :- 
-%dynamic (plateau_courant/1).
+
+%dynamic(plateau_en_cours/1).
+%retract(plateau_en_cours).
+%asserta(plateau_en_cours(P)).	
 
 %poussee_possible(Plateau, Case, Direction).
 

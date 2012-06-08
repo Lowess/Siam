@@ -213,23 +213,8 @@ plateau_depart([
 		[32,33,34],
 		e
 	]).
-	
-%dynamic(plateau_en_cours/1).
-%asserta(plateau_en_cours(P)).	
-	
-coup_possible(P, (D,A,O)) :- repeat,
-							write('Choisissez votre pion'),
-							nl,
-							read(D),
-							verifier_depart(D, P),!,
-							repeat,
-							write('Choisissez la case d\'arrivée'),
-							read(A),
-							verifier_arrivee(A, P),!,
-							write('Choisissez l\'orientation de votre pion'),
-							read(O),
-							verifier_orientation(O).
-		
+			
+%Vérifier si poussee sort montagne (grâce à montagne_out) mais vérifier quel pion a poussé montagne sortie pour %désigner vainqueur
 fin_partie([_,_,M,_]) :- montagne_out(M), !.
 fin_partie(_) :- fail.
 montagne_out([]) :- fail.
