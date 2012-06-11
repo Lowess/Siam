@@ -416,6 +416,7 @@ partie_SIAM :- dynamic(plateau_courant/1),
 										[32,33,34],
 										e
 										])),
+				afficher_plateau(P),
 				repeat,
 				plateau_courant(P),
 				afficher_joueur_courant(P),
@@ -447,8 +448,8 @@ jouer_coup(P, Coup, NP, H) :- modifier_plateau(P, Coup, NP, H),
 
 % Historique vide = pas de poussee
 modifier_plateau([E,R,M,J], (Depart,Arrivee,Orientation), [newE,R,M,J], []) :- get_pion([E,R,M,J], Depart, (e,Depart,_)),
-															change_p(E, (Depart,Arrivee,Orientation), newE).
-modifier_plateau([E,R,M,J], (Depart,Arrivee,Orientation), [E,newR,M,J], []) :- change_p(R, (Depart,Arrivee,Orientation), newR).
+															change_p(E, (Depart,Arrivee,Orientation), newE),!.
+modifier_plateau([E,R,M,J], (Depart,Arrivee,Orientation), [E,newR,M,J], []) :- change_p(R, (Depart,Arrivee,Orientation), newR),!.
 
 change_p([],_,[]) :- write('Erreur : impossible de modifier la piece, non presente dans la base.'),
 					nl,
@@ -457,7 +458,7 @@ change_p([(Depart,_)|Q], (Depart, Arrivee, Orientation), [(Arrivee,Orientation)|
 change_p([T|Q], Coup, [T|newQ]) :- change_p(Q, Coup, newQ). 
 
 %Historique non vide = poussee, changements multiples de pions
-%modifier_plateau(P, (Depart,Arrivee,Orientation), NP, H) :- .
+modifier_plateau(P, (Depart,Arrivee,Orientation), NP, H) :- reverse(H, InvH).
 							
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -466,7 +467,7 @@ change_p([T|Q], Coup, [T|newQ]) :- change_p(Q, Coup, newQ).
 %Fin de partie : vérification si une montagne est hors-limites
 %				détermination du vainqueur si oui.					
 					
-fin_partie([_,_,M,_], H) :- montagne_out(M), !, afficher_gagnant(H).
+fin_partie([E,R,M,J], H) :- montagne_out(M), !, afficher_gagnant(H, [E,R,M,J]).
 fin_partie(_, _) :- fail.
 
 montagne_out([]) :- fail.
@@ -475,18 +476,16 @@ montagne_out([_,M,_]) :- M = 0, !.
 montagne_out([_,_,M]) :- M = 0, !.
 montagne_out(_) :- fail.
 					
-%afficher_gagnant(H) :- recuperer orientation premiere piece
-%						inverser H
-%						boucler sur H pour trouver piece.orientation() = orientation premiere piece
+afficher_gagnant([(Pion,Case,Orientation)|Q], P) :- reverse([(Pion,Case,Orientation)|Q], InvH),
+													test_orientation(InvH, Orientation),
+													
+%												boucler sur H pour trouver piece.orientation() = orientation premiere piece
 %						piece = e => e gagnant
 %						piece = r -> r gagnant
+
+test_orientation([(Pion,Case,Orientation)|Q], Orientation) :-.
 						
 
-						
-						
-						
-						
-						
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                      TIPS                                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%						
