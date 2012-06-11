@@ -33,8 +33,8 @@
 plateau_test(
 	[
 		[(11,n),(44,s),(13,w),(14,e),(15,n)],
-		[(35,w),(41,s),(53,w),(54,e),(55,n)],
-		[21,22,33],
+		[(0,s),(34,s),(53,w),(54,e),(55,n)],
+		[21,31,33],
 		e
 	]).
 
@@ -224,34 +224,34 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 %dynamic(plateau_en_cours/1).
 %asserta(plateau_en_cours(P)).	
 
-plateau_depart([
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[32,33,34],
-		e
-	]).
-	
+%plateau_depart([
+%		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+%		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+%		[32,33,34],
+%		e
+%	]).
+%	
 %dynamic(plateau_en_cours/1).
 %asserta(plateau_en_cours(P)).	
 	
-coup_possible(P, (D,A,O)) :- repeat,
-							write('Choisissez votre pion'),
-							nl,
-							read(D),
-							verifier_depart(D, P),!,
-							repeat,
-							write('Choisissez la case d\'arrivée'),
-							read(A),
-							verifier_arrivee(A, P),!,
-							write('Choisissez l\'orientation de votre pion'),
-							read(O),
-							verifier_orientation(O).
-
-fin_partie([_,_,M,_]) :- montagne_out(M), !.
-fin_partie(_) :- fail.
-montagne_out([]) :- fail.
-montagne_out([M,_,_]) :- M = 0, !.
-montagne_out([_,M,_]) :- M = 0, !.
-montagne_out([_,_,M]) :- M = 0, !.
-montagne_out(_) :- fail.
+%coup_possible(P, (D,A,O)) :- repeat,
+%							write('Choisissez votre pion'),
+%							nl,
+%							read(D),
+%							verifier_depart(D, P),!,
+%							repeat,
+%							write('Choisissez la case d\'arrivée'),
+%							read(A),
+%							verifier_arrivee(A, P),!,
+%							write('Choisissez l\'orientation de votre pion'),
+%							read(O),
+%							verifier_orientation(O).
+%
+%fin_partie([_,_,M,_]) :- montagne_out(M), !.
+%fin_partie(_) :- fail.
+%montagne_out([]) :- fail.
+%montagne_out([M,_,_]) :- M = 0, !.
+%montagne_out([_,M,_]) :- M = 0, !.
+%montagne_out([_,_,M]) :- M = 0, !.
+%montagne_out(_) :- fail.
 */

@@ -140,44 +140,50 @@ orientation_identique(Orientation,Case,Plateau) :- 	get_orientation(Plateau, Cas
 %	--> 2) On sort du plateau
 
 % 1)
-genere_liste_force_masse(Case, _, Plateau, (0,0)):- verifier_case_vide(Case,Plateau), !.
+genere_liste_force_masse(Case, _, Plateau, (_,_)):- verifier_case_vide(Case,Plateau), !.
 
 % 2)
-genere_liste_force_masse(Case, _, _, (0,0)):- \+ case_valide(Case), !.
+genere_liste_force_masse(Case, _, _, (_,_)):- \+ case_valide(Case), !.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%Poussée vers le NORD
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	--> Poussée d'une montagne
-genere_liste_force_masse(Case, n, Plateau, (Force,NewMasse)):- 
+genere_liste_force_masse(Case, n, Plateau, (Force,Masse)):- 
 	montagne(Plateau, Case),
 	CaseSuivante is Case + 10,
-	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, Masse)),
-	NewMasse is Masse + 1.
+	NewMasse is Masse + 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(Force,NewMasse),
+	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, NewMasse)).
 
 %	--> Poussée d'un animal avec des forces qui s'opposent Ex e--> <--e
-genere_liste_force_masse(Case, n, Plateau, (NewForce,Masse)):- 
+genere_liste_force_masse(Case, n, Plateau, (Force,Masse)):- 
 	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
 	orientation_opposee(n,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est opposée à la mienne
 	CaseSuivante is Case + 10,
-	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, Masse)),
-	NewForce is Force - 1.
+	NewForce is Force - 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(NewForce,Masse),
+	genere_liste_force_masse(CaseSuivante, n, Plateau, (NewForce, Masse)).
 
 %	--> Poussée d'un animal avec des forces qui s'ajoute e--> e-->
-genere_liste_force_masse(Case, n, Plateau, (NewForce,Masse)):- 
+genere_liste_force_masse(Case, n, Plateau, (Force,Masse)):- 
 	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
 	orientation_identique(n,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est la meme que la mienne
 	CaseSuivante is Case + 10,
-	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, Masse)),
-	NewForce is Force + 1.
+	NewForce is Force + 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(NewForce,Masse),
+	genere_liste_force_masse(CaseSuivante, n, Plateau, (NewForce, Masse)).
 
 %									 ^
 %	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
 %									 v
 genere_liste_force_masse(Case, n, Plateau, (Force,Masse)):- 
-	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
-	%\+orientation_identique(n,Case, Plateau), %Orientation du pion ni opposée ni identique
-	%\+orientation_opposee(n,Case, Plateau), %Orientation du pion ni opposée ni identique
 	CaseSuivante is Case + 10,
 	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, Masse)).
 
@@ -185,25 +191,36 @@ genere_liste_force_masse(Case, n, Plateau, (Force,Masse)):-
 %%Poussée vers le SUD
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	--> Poussée d'une montagne
-genere_liste_force_masse(Case, s, Plateau, (Force,NewMasse)):- 
+genere_liste_force_masse(Case, s, Plateau, (Force,Masse)):- 
 	montagne(Plateau, Case),
 	CaseSuivante is Case - 10,
-	genere_liste_force_masse(CaseSuivante, s, Plateau, (Force, Masse)),
-	NewMasse is Masse + 1.
+	NewMasse is Masse + 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(Force,NewMasse),
+	genere_liste_force_masse(CaseSuivante, s, Plateau, (Force, NewMasse)).
 
 %	--> Poussée d'un animal avec des forces qui s'opposent Ex e--> <--e
-genere_liste_force_masse(Case, s, Plateau, (NewForce,Masse)):- 
+genere_liste_force_masse(Case, s, Plateau, (Force,Masse)):- 
+	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
 	orientation_opposee(s,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est opposée à la mienne
 	CaseSuivante is Case - 10,
-	genere_liste_force_masse(CaseSuivante, s, Plateau, (Force, Masse)),
-	NewForce is Force - 1.
+	NewForce is Force - 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(NewForce,Masse),
+	genere_liste_force_masse(CaseSuivante, s, Plateau, (NewForce, Masse)).
 
 %	--> Poussée d'un animal avec des forces qui s'ajoute e--> e-->
-genere_liste_force_masse(Case, s, Plateau, (NewForce,Masse)):- 
+genere_liste_force_masse(Case, s, Plateau, (Force,Masse)):- 
+	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
 	orientation_identique(s,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est la meme que la mienne
 	CaseSuivante is Case - 10,
-	genere_liste_force_masse(CaseSuivante, s, Plateau, (Force, Masse)),
-	NewForce is Force + 1.
+	NewForce is Force + 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(NewForce,Masse),
+	genere_liste_force_masse(CaseSuivante, s, Plateau, (NewForce, Masse)).
 
 %									 ^
 %	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
@@ -216,25 +233,36 @@ genere_liste_force_masse(Case, s, Plateau, (Force,Masse)):-
 %%Poussée vers l'WEST
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	--> Poussée d'une montagne
-genere_liste_force_masse(Case, w, Plateau, (Force,NewMasse)):- 
+genere_liste_force_masse(Case, w, Plateau, (Force,Masse)):- 
 	montagne(Plateau, Case),
 	CaseSuivante is Case - 1,
-	genere_liste_force_masse(CaseSuivante, w, Plateau, (Force, Masse)),
-	NewMasse is Masse + 1.
+	NewMasse is Masse + 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(Force,NewMasse),
+	genere_liste_force_masse(CaseSuivante, w, Plateau, (Force, NewMasse)).
 
 %	--> Poussée d'un animal avec des forces qui s'opposent Ex e--> <--e
-genere_liste_force_masse(Case, w, Plateau, (NewForce,Masse)):- 
+genere_liste_force_masse(Case, w, Plateau, (Force,Masse)):- 
+	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
 	orientation_opposee(w,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est opposée à la mienne
 	CaseSuivante is Case - 1,
-	genere_liste_force_masse(CaseSuivante, w, Plateau, (Force, Masse)),
-	NewForce is Force - 1.
+	NewForce is Force - 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(NewForce,Masse),
+	genere_liste_force_masse(CaseSuivante, w, Plateau, (NewForce, Masse)).
 
 %	--> Poussée d'un animal avec des forces qui s'ajoute e--> e-->
-genere_liste_force_masse(Case, w, Plateau, (NewForce,Masse)):- 
+genere_liste_force_masse(Case, w, Plateau, (Force,Masse)):- 
+	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
 	orientation_identique(w,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est la meme que la mienne
 	CaseSuivante is Case - 1,
-	genere_liste_force_masse(CaseSuivante, w, Plateau, (Force, Masse)),
-	NewForce is Force + 1.
+	NewForce is Force + 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(NewForce,Masse),
+	genere_liste_force_masse(CaseSuivante, w, Plateau, (NewForce, Masse)).
 
 %									 ^
 %	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
@@ -247,25 +275,36 @@ genere_liste_force_masse(Case, w, Plateau, (Force,Masse)):-
 %%Poussée vers l'EST
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	--> Poussée d'une montagne
-genere_liste_force_masse(Case, e, Plateau, (Force,NewMasse)):- 
+genere_liste_force_masse(Case, e, Plateau, (Force,Masse)):- 
 	montagne(Plateau, Case),
 	CaseSuivante is Case + 1,
-	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, Masse)),
-	NewMasse is Masse + 1.
+	NewMasse is Masse + 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(Force,NewMasse),
+	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, NewMasse)).
 
 %	--> Poussée d'un animal avec des forces qui s'opposent Ex e--> <--e
-genere_liste_force_masse(Case, e, Plateau, (NewForce,Masse)):- 
+genere_liste_force_masse(Case, e, Plateau, (Force,Masse)):- 
+	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
 	orientation_opposee(e,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est opposée à la mienne
 	CaseSuivante is Case + 1,
-	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, Masse)),
-	NewForce is Force - 1.
+	NewForce is Force - 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(NewForce,Masse),
+	genere_liste_force_masse(CaseSuivante, e, Plateau, (NewForce, Masse)).
 
 %	--> Poussée d'un animal avec des forces qui s'ajoute e--> e-->
-genere_liste_force_masse(Case, e, Plateau, (NewForce,Masse)):- 
+genere_liste_force_masse(Case, e, Plateau, (Force,Masse)):- 
+	%\+ montagne(Plateau, Case), %Ce n'est pas une montagne donc 2 animaux
 	orientation_identique(e,Case, Plateau), %Orientation du pion de la case sur laquelle je souhaite me déplacer est la meme que la mienne
 	CaseSuivante is Case + 1,
-	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, Masse)),
-	NewForce is Force + 1.
+	NewForce is Force + 1,
+	%Test la validité de la poussée
+	!,
+	test_force_masse(NewForce,Masse),
+	genere_liste_force_masse(CaseSuivante, e, Plateau, (NewForce, Masse)).
 
 %									 ^
 %	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
@@ -273,6 +312,7 @@ genere_liste_force_masse(Case, e, Plateau, (NewForce,Masse)):-
 genere_liste_force_masse(Case, e, Plateau, (Force,Masse)):- 
 	CaseSuivante is Case + 1,
 	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, Masse)).
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -324,29 +364,13 @@ poussee_possible(Case, Orientation, Plateau):-
 	%On test si notre piece que l'on manipule est dans le sens opposée à la pièce de devant
 	orientation_opposee(Orientation, Case, Plateau),
 	
-	genere_liste_force_masse(Case, Orientation, Plateau, (TmpForce,Masse)),
-
-	%Dans ce cas on perd en force
-	Force is TmpForce - 1,
-
-	%Test la validité de la poussée
-	test_force_masse(Force,Masse),
-	write('Force :'), write(Force),nl,
-	write('Masse :'), write(Masse),
+	genere_liste_force_masse(Case, Orientation, Plateau, (1,0)),
 	nl, !.
 
 poussee_possible(Case, Orientation, Plateau):-
 	%Si notre piece que l'on manipule n'est pas opposée à la notre
 	
-	genere_liste_force_masse(Case, Orientation, Plateau, (TmpForce,Masse)),
-
-	%Dans ce cas on gagne en force
-	Force is TmpForce + 1,
-
-	%Test la validité de la poussée
-	test_force_masse(Force,Masse),
-	write('Force :'), write(Force),nl,
-	write('Masse :'), write(Masse),
+	genere_liste_force_masse(Case, Orientation, Plateau, (1,0)),
 	nl, !.
 
 %Conditions d'arrets avec echec de poussée:
