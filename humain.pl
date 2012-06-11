@@ -420,9 +420,9 @@ partie_SIAM :- dynamic(plateau_courant/1),
 				repeat,
 				plateau_courant(P),
 				afficher_joueur_courant(P),
-				tour(P, H),
+				tour(P, H, C),
 				afficher_plateau(P),
-				fin_partie(P, H),
+				fin_partie(P, H, C),
 				write('La partie est finie.').
 
 afficher_joueur_courant(P) :- afficher_joueur(P, e), !,
@@ -434,7 +434,7 @@ afficher_joueur_courant(P) :- write('Au tour des rhinoceros de jouer.'), nl.
 % - Réallocation du plateau de jeu dynamiquement
 % - Affichage du vainqueur si montagne hors du jeu.
 					
-tour(NouveauPlateau, Historique) :- 	saisir_coup(Plateau, Coup, Historique),
+tour(NouveauPlateau, Historique, Coup) :- 	saisir_coup(Plateau, Coup, Historique),
 								jouer_coup(Plateau, Coup, NouveauPlateau, Historique).					
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -446,10 +446,10 @@ jouer_coup(P, Coup, NP, H) :- modifier_plateau(P, Coup, NP, H),
 							dynamic(plateau_courant/1),
 							asserta(plateau_courant(NP)).
 
-% Historique vide = pas de poussee
-modifier_plateau([E,R,M,J], (Depart,Arrivee,Orientation), [newE,R,M,J], []) :- get_pion([E,R,M,J], Depart, (e,Depart,_)),
-															change_p(E, (Depart,Arrivee,Orientation), newE),!.
-modifier_plateau([E,R,M,J], (Depart,Arrivee,Orientation), [E,newR,M,J], []) :- change_p(R, (Depart,Arrivee,Orientation), newR),!.
+%Historique vide = pas de poussee
+%Si joueur = e, on bouge un éléphant, et le joueur suivant jouera les rhinocéros, sinon inverse
+modifier_plateau([E,R,M,e], (Depart,Arrivee,Orientation), [newE,R,M,r], []) :- change_p(E, (Depart,Arrivee,Orientation), newE),!.
+modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,newR,M,e], []) :- change_p(R, (Depart,Arrivee,Orientation), newR),!.
 
 change_p([],_,[]) :- write('Erreur : impossible de modifier la piece, non presente dans la base.'),
 					nl,
@@ -458,7 +458,13 @@ change_p([(Depart,_)|Q], (Depart, Arrivee, Orientation), [(Arrivee,Orientation)|
 change_p([T|Q], Coup, [T|newQ]) :- change_p(Q, Coup, newQ). 
 
 %Historique non vide = poussee, changements multiples de pions
-modifier_plateau(P, (Depart,Arrivee,Orientation), NP, H) :- reverse(H, InvH).
+modifier_plateau(P, (Depart,Arrivee,Orientation), NP, H) :- reverse(H, InvH),
+															change_pion(P, Orientation, NP, InvH).
+															
+change_pion(P, n, NP, [T|Q]) :- change_pion(P, n, NP, Q).
+%change_pion(P, e, NP, H) :- .
+%change_pion(P, s, NP, H) :- .
+%change_pion(P, w, NP, H) :- .
 							
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -467,7 +473,7 @@ modifier_plateau(P, (Depart,Arrivee,Orientation), NP, H) :- reverse(H, InvH).
 %Fin de partie : vérification si une montagne est hors-limites
 %				détermination du vainqueur si oui.					
 					
-fin_partie([E,R,M,J], H) :- montagne_out(M), !, afficher_gagnant(H, [E,R,M,J]).
+fin_partie([E,R,M,J], H, C) :- montagne_out(M), !, afficher_gagnant(H, [E,R,M,J], C).
 fin_partie(_, _) :- fail.
 
 montagne_out([]) :- fail.
@@ -476,14 +482,24 @@ montagne_out([_,M,_]) :- M = 0, !.
 montagne_out([_,_,M]) :- M = 0, !.
 montagne_out(_) :- fail.
 					
-afficher_gagnant([(Pion,Case,Orientation)|Q], P) :- reverse([(Pion,Case,Orientation)|Q], InvH),
-													test_orientation(InvH, Orientation),
+afficher_gagnant(H, P, (_,_,Orientation)) :- reverse(H, InvH),
+							trim_historique(InvH, NewH),
+							test_orientation(NewH, Orientation, P, e),
+							write('Les elephants ont gagne!').
 													
-%												boucler sur H pour trouver piece.orientation() = orientation premiere piece
-%						piece = e => e gagnant
-%						piece = r -> r gagnant
+afficher_gagnant(_, _, _) :- write('Les rhinoceros ont gagne!').
 
-test_orientation([(Pion,Case,Orientation)|Q], Orientation) :-.
+trim_historique([], []) :- write('Erreur : impossible de se retrouver avec un historique sans montagne dans le cas ou fin de partie').
+trim_historique([(m,_)|Q], Q) :- !.
+trim_historique([_|Q], NewH) :- trim_historique(Q, NewH).
+
+%Si historique vide : pion qui a initié la poussée a gagné
+%Comme plateau déjà modifié (joueur différent de celui qui a joué), on renvoie l'autre joueur que le joueur courant
+test_orientation([], _, Plateau, r) :- afficher_joueur(Plateau, e).
+test_orientation([], _, Plateau, e) :- afficher_joueur(Plateau, r).
+
+test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- orientation_identique(O, Case, Plateau),!.
+test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- test_orientation(Q, O, Plateau).
 						
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

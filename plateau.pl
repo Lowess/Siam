@@ -123,7 +123,7 @@ get_pion(Plateau, Case, (e, Pion)) :- elephant(Plateau, Case), !,
 								get_elephant(Plateau, Case, Pion).
 get_pion(Plateau, Case, (r, Pion)) :- rhinoceros(Plateau, Case), !,
 								get_rhinoceros(Plateau, Case, Pion).
-get_pion(Plateau, Case, (m,Case)) :- montagne(Plateau, Case).
+get_pion(Plateau, Case, (m, Case)) :- montagne(Plateau, Case).
 
 get_elephant([E|_], Case, Pion) :- get_p(E, Case, Pion).
 get_rhinoceros([_,R|_], Case, Pion) :- get_p(R, Case, Pion).
@@ -226,9 +226,9 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 				write(Jou), nl,
 	
 				nombre_pieces_restantes(R,NbEle), %Affiche le nombre d'éléphants restants
-				write('Nombre d\'éléphants à faire entrer en jeu: '),  
+				write('Nombre d\'elephants a faire entrer en jeu: '),  
 				write(NbEle), nl,
 
 				nombre_pieces_restantes(E,NbRhi), %Affiche le nombre de rhinocéros restants
-				write('Nombre de rhinocéros à faire entrer en jeu: '),
+				write('Nombre de rhinoceros a faire entrer en jeu: '),
 				write(NbRhi), nl.
