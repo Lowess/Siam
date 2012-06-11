@@ -1,3 +1,7 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                      PLATEAU.PL                          %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %%% Quelques prédicats
 
 % change_directory('/home/florian/Documents/UTC/IA02/Projet').
@@ -14,7 +18,7 @@
 
 %%% Constantes possibles pour orientation : n, s, w, e
 
-%%% Prédicats utils
+%%% Prédicats utiles
 
 % length
 % append
@@ -30,6 +34,13 @@
 %%%plateau_test
 % différents plateaux de siam possible en cours de partie
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+plateau_test(
+	[
+		[(11,n),(44,s),(13,w),(14,e),(15,n)],
+		[(35,w),(41,s),(53,w),(54,e),(55,n)],
+		[21,22,33],
+		e
+	]).
 
 plateau_test([
 		[(0,0),(0,0),(0,0),(0,0),(0,0)],
@@ -46,21 +57,12 @@ plateau_test(
 		e
 	]).
 
-
 plateau_test(
 	[
 		[(11,n),(12,s),(13,w),(14,e),(15,n)],
 		[(51,n),(52,s),(53,w),(54,e),(55,n)],
 		[32,33,34],
-		e
-	]).
-	
-plateau_test(
-	[
-		[(11,n),(12,s),(13,w),(14,e),(15,n)],
-		[(51,n),(52,s),(53,w),(54,e),(55,n)],
-		[0,33,34],
-		e
+		r
 	]).
 
 
@@ -69,7 +71,7 @@ plateau_test(
 % Permet l'affichage de NbCases du plateau P
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-affiche_ligne(Numero, 0, P):- 	!.
+affiche_ligne(Numero, 0 , P):- 	!.
 
 affiche_ligne(Numero, NbCases, P):-	TmpCases is NbCases - 1,
 					affiche_ligne(Numero, TmpCases, P),						
@@ -113,6 +115,23 @@ elephant([E|_],Case) :- 	member((Case,_),E).
 rhinoceros( [_,R|_], Case) :- 	member((Case,_),R).
 montagne( [_,_,M,_], Case) :- 	member(Case,M).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%Récupérer le contenu d'une case (si non vide)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+get_pion(Plateau, Case, (e, Pion)) :- elephant(Plateau, Case), !,
+								get_elephant(Plateau, Case, Pion).
+get_pion(Plateau, Case, (r, Pion)) :- rhinoceros(Plateau, Case), !,
+								get_rhinoceros(Plateau, Case, Pion).
+get_pion(Plateau, Case, (m,Case)) :- montagne(Plateau, Case).
+
+get_elephant([E|_], Case, Pion) :- get_p(E, Case, Pion).
+get_rhinoceros([_,R|_], Case, Pion) :- get_p(R, Case, Pion).
+
+%Si on arrive à la liste vide, c'est que la Case ne contient aucun pion
+get_p([],_, Pion) :- write('Erreur, aucun pion ne correspond a cette case.'),nl.
+get_p([(Case,Orientation)|Q], Case, (Case,Orientation)) :- !.
+get_p([_|Q], Case, Pion) :- get_p(Q, Case, Pion).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Afficher contenu 
@@ -164,6 +183,16 @@ afficher_orientation([E|_], C, O) :- 	member((C,O),E),
 afficher_orientation([_,R|_], C, O) :- 	member((C,O),R),
 					transcrit(O).
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%Get Orientation
+%Retourne l'orientation d'un pion d'une case C
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+get_orientation([E|_], C, O) :- 	member((C,O),E), !.
+
+get_orientation([_,R|_], C, O) :- 	member((C,O),R).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Afficher joueur
 %Affiche le nom du joueur
@@ -181,9 +210,10 @@ nombre_pieces_restantes([],0):- !.
 nombre_pieces_restantes([(0,0)|Q],Nb):- 	nombre_pieces_restantes(Q,Tmp),
 						!,
 						Nb is Tmp + 1.
-nombre_pieces_restantes([(_,_)|Q],Nb):- 	nombre_pieces_restantes(Q,Tmp),
-						!,
-						Nb is Tmp + 0.
+%nombre_pieces_restantes([(_,_)|Q],Nb):- 	nombre_pieces_restantes(Q,Tmp),
+%						!,
+%						Nb is Tmp + 0.
+nombre_pieces_restantes([(_,_)|Q],Tmp):- 	nombre_pieces_restantes(Q,Tmp).
 					
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Afficher plateau	
@@ -202,23 +232,3 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 				nombre_pieces_restantes(E,NbRhi), %Affiche le nombre de rhinocéros restants
 				write('Nombre de rhinocéros à faire entrer en jeu: '),
 				write(NbRhi), nl.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%Test fin de partie
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
-
-plateau_depart([
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[32,33,34],
-		e
-	]).
-			
-%Vérifier si poussee sort montagne (grâce à montagne_out) mais vérifier quel pion a poussé montagne sortie pour %désigner vainqueur
-fin_partie([_,_,M,_]) :- montagne_out(M), !.
-fin_partie(_) :- fail.
-montagne_out([]) :- fail.
-montagne_out([M,_,_]) :- M = 0, !.
-montagne_out([_,M,_]) :- M = 0, !.
-montagne_out([_,_,M]) :- M = 0, !.
-montagne_out(_) :- fail.
