@@ -3,6 +3,48 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- include('plateau.pl').
+:- dynamic(plateau_courant/1).
+:- multifile(plateau_courant/1).
+
+%Déroulement d'une partie:
+% -Création dynamique du plateau de jeu initial
+% -Tour de jeu (avec réallocation dynamique du plateau de jeu)
+% -Test fin de partie? Si non, on retourne au point de choix créé par repeat, si oui, partie finie.
+
+partie_SIAM :-
+			asserta(plateau_courant([
+										[(0,0),(0,0),(0,0),(0,0),(0,0)],
+										[(0,0),(0,0),(0,0),(0,0),(0,0)],
+										[32,33,34],
+										e
+										]
+										)
+										),
+			plateau_courant(P),
+			afficher_plateau(P),
+			repeat,
+			plateau_courant(P),
+			afficher_joueur_courant(P),
+			tour(P, H, C),
+			afficher_plateau(P),
+			fin_partie(P, H, C),
+			write('La partie est finie.').
+
+afficher_joueur_courant(P) :- afficher_joueur(P, e), !,
+							write('Au tour des elephants de jouer.'), nl.
+afficher_joueur_courant(P) :- write('Au tour des rhinoceros de jouer.'), nl.
+				
+%Déroulement d'un tour de jeu :
+% - Saisie du coup (vérification du joueur, des cases de départ et d'arrivée, si poussée possible.
+% - Réallocation du plateau de jeu dynamiquement
+% - Affichage du vainqueur si montagne hors du jeu.
+					
+tour(NouveauPlateau, Historique, Coup) :- 	saisir_coup(Plateau, Coup, Historique),
+								jouer_coup(Plateau, Coup, NouveauPlateau, Historique).					
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -19,6 +61,8 @@ case_valide(Case) :- 	Case > 10, Case < 56,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%Vérifie que le joueur manipule ses pions
+verifier_depart(0, [E,_,_,e]) :- nombre_pieces_restantes(E, nbAnimaux), nbAnimaux > 0.
+verifier_depart(0, [_,R,_,r]) :- nombre_pieces_restantes(R, nbAnimaux), nbAnimaux > 0.
 
 %Si joue les elephants
 verifier_depart(Depart,Plateau) :-	case_valide(Depart),
@@ -377,15 +421,10 @@ test_force_masse(Force, Masse) :- 	Force > 0,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Coup possible
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-plateau_depart([
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[32,33,34],
-		e
-	]).
 		
-coup_possible(Plateau, (Depart,Arrivee,Orientation), Historique) :- verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique),!.
+%coup_possible(Plateau, (Depart,Arrivee,Orientation), Historique) :- verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique),!.
+
+%coups_possibles(Plateau, ListeCoups) :- setof(X, coup_possible(Plateau, X, Historique), ListeCoups).
  
 							
 saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-	repeat,
@@ -394,48 +433,11 @@ saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-	repeat,
 							read(Depart),
 							verifier_depart(Depart, Plateau),!,
 							repeat,
-							write('Choisissez la case d\'arrivée'), nl,
+							write('Choisissez la case d\'arrivee'), nl,
 							read(Arrivee), nl,
 							write('Choisissez l\'orientation de votre pion'), nl,
 							read(Orientation), nl,
-							verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique),!.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%Déroulement d'une partie:
-% -Création dynamique du plateau de jeu initial
-% -Tour de jeu (avec réallocation dynamique du plateau de jeu)
-% -Test fin de partie? Si non, on retourne au point de choix créé par repeat, si oui, partie finie.
-
-partie_SIAM :- dynamic(plateau_courant/1),
-			asserta(plateau_courant([
-										[(0,0),(0,0),(0,0),(0,0),(0,0)],
-										[(0,0),(0,0),(0,0),(0,0),(0,0)],
-										[32,33,34],
-										e
-										])),
-				afficher_plateau(P),
-				repeat,
-				plateau_courant(P),
-				afficher_joueur_courant(P),
-				tour(P, H, C),
-				afficher_plateau(P),
-				fin_partie(P, H, C),
-				write('La partie est finie.').
-
-afficher_joueur_courant(P) :- afficher_joueur(P, e), !,
-							write('Au tour des elephants de jouer.'), nl.
-afficher_joueur_courant(P) :- write('Au tour des rhinoceros de jouer.'), nl.
-				
-%Déroulement d'un tour de jeu :
-% - Saisie du coup (vérification du joueur, des cases de départ et d'arrivée, si poussée possible.
-% - Réallocation du plateau de jeu dynamiquement
-% - Affichage du vainqueur si montagne hors du jeu.
-					
-tour(NouveauPlateau, Historique, Coup) :- 	saisir_coup(Plateau, Coup, Historique),
-								jouer_coup(Plateau, Coup, NouveauPlateau, Historique).					
+							verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -443,7 +445,6 @@ tour(NouveauPlateau, Historique, Coup) :- 	saisir_coup(Plateau, Coup, Historique
 
 jouer_coup(P, Coup, NP, H) :- modifier_plateau(P, Coup, NP, H),
 							retractall(plateau_courant),
-							dynamic(plateau_courant/1),
 							asserta(plateau_courant(NP)).
 
 %Historique vide = pas de poussee
@@ -451,23 +452,32 @@ jouer_coup(P, Coup, NP, H) :- modifier_plateau(P, Coup, NP, H),
 modifier_plateau([E,R,M,e], (Depart,Arrivee,Orientation), [NewE,R,M,r], []) :- change_p(E, (Depart,Arrivee,Orientation), NewE),!.
 modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,NewR,M,e], []) :- change_p(R, (Depart,Arrivee,Orientation), NewR),!.
 
+%Historique non vide = poussee, changements multiples de pions
+modifier_plateau([E,R,M,e], (Depart,Arrivee,Orientation), [E,R,M,r], H) :- reverse(H, InvH),
+															modifier_plateau(P, (Depart,Arrivee,Orientation), TmpP, _),
+															change_pion(TmpP, Orientation, NP, InvH).
+modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,R,M,e], H) :- reverse(H, InvH),
+															modifier_plateau(P, (Depart,Arrivee,Orientation), TmpP, _),
+															change_pion(TmpP, Orientation, NP, InvH).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                  Modification des pions               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 change_p([],_,[]) :- write('Erreur : impossible de modifier la piece, non presente dans la base.'),
 					nl,
 					fail.
 change_p([(Depart,_)|Q], (Depart, Arrivee, Orientation), [(Arrivee,Orientation)|Q]).
 change_p([T|Q], Coup, [T|NewQ]) :- change_p(Q, Coup, NewQ). 
-
-%Historique non vide = poussee, changements multiples de pions
-modifier_plateau(P, (Depart,Arrivee,Orientation), NP, H) :- reverse(H, InvH),
-															modifier_plateau(P, (Depart,Arrivee,Orientation), TmpP, _),
-															change_pion(TmpP, Orientation, NP, InvH).
 								
 %Quand historique vide = plus de modifications à apporter
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%               Modification d'une montagne             %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 change_pion([E,R,M,J], O, NewPlateau, [(m,Case)|Q]) :- 	change_montagne(M, Case, TmpM, O), 
 										change_pion([E,R,TmpM,J], O, NewPlateau, Q).
+change_pion([E,R,M,J], O, NewPlateau, [(e, Case, O)|Q]) :- 	change_animal(E, Case, TmpE, O), 
+										change_pion([TmpE,R,M,J], O, NewPlateau, Q).
+change_pion([E,R,M,J], O, NewPlateau, [(r, Case, O)|Q]) :- 	change_animal(R, Case, TmpR, O), 
+										change_pion([E,TmpR,M,J], O, NewPlateau, Q).
 
 change_montagne([Case|Q], Case, [NewCase|Q], n) :- NewCase is Case + 10.
 change_montagne([Case|Q], Case, [NewCase|Q], e) :- NewCase is Case + 1.
@@ -475,11 +485,6 @@ change_montagne([Case|Q], Case, [NewCase|Q], s) :- NewCase is Case - 10.
 change_montagne([Case|Q], Case, [NewCase|Q], w) :- NewCase is Case - 1.
 change_montagne([T|Q], Case, [T|NewQ], O) :- change_montagne(Q, Case, NewQ, O).
 
-
-change_pion([E,R,M,J], O, NewPlateau, [(e, Case, O)|Q]) :- 	change_animal(E, Case, TmpE, O), 
-										change_pion([TmpE,R,M,J], O, NewPlateau, Q).
-change_pion([E,R,M,J], O, NewPlateau, [(r, Case, O)|Q]) :- 	change_animal(R, Case, TmpR, O), 
-										change_pion([E,TmpR,M,J], O, NewPlateau, Q).
 change_animal([(Case,Orientation)|Q], Case, [(NewCase,Orientation)|Q], n) :- NewCase is Case + 10.
 change_animal([(Case,Orientation)|Q], Case, [(NewCase,Orientation)|Q], e) :- NewCase is Case + 1.
 change_animal([(Case,Orientation)|Q], Case, [(NewCase,Orientation)|Q], s) :- NewCase is Case - 10.

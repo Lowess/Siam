@@ -71,7 +71,7 @@ plateau_test(
 % Permet l'affichage de NbCases du plateau P
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-affiche_ligne(Numero, 0 , P):- 	!.
+affiche_ligne(_, 0 , _):- 	!.
 
 affiche_ligne(Numero, NbCases, P):-	TmpCases is NbCases - 1,
 					affiche_ligne(Numero, TmpCases, P),						
@@ -84,7 +84,7 @@ affiche_ligne(Numero, NbCases, P):-	TmpCases is NbCases - 1,
 % Permet l'affichage de NbLignes du plateau P
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-affiche_lignes(0, NbCases, P):- 	!, 
+affiche_lignes(0, _, _):- 	!, 
 				write('     |-------|-------|-------|-------|-------|'), 
 				nl,
 				write('         1       2       3       4       5    '),
@@ -158,7 +158,7 @@ affiche_contenu(C, P) :-	montagne(P,C),
 				!,
 				afficher_montagne.
 
-affiche_contenu(C, P) :-	!, write('   ').
+affiche_contenu(_, _) :-	!, write('   ').
 
 afficher_elephant :-	write('e '). %write('(}.l.{)'). 
 
