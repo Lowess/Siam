@@ -448,23 +448,43 @@ jouer_coup(P, Coup, NP, H) :- modifier_plateau(P, Coup, NP, H),
 
 %Historique vide = pas de poussee
 %Si joueur = e, on bouge un éléphant, et le joueur suivant jouera les rhinocéros, sinon inverse
-modifier_plateau([E,R,M,e], (Depart,Arrivee,Orientation), [newE,R,M,r], []) :- change_p(E, (Depart,Arrivee,Orientation), newE),!.
-modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,newR,M,e], []) :- change_p(R, (Depart,Arrivee,Orientation), newR),!.
+modifier_plateau([E,R,M,e], (Depart,Arrivee,Orientation), [NewE,R,M,r], []) :- change_p(E, (Depart,Arrivee,Orientation), NewE),!.
+modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,NewR,M,e], []) :- change_p(R, (Depart,Arrivee,Orientation), NewR),!.
 
 change_p([],_,[]) :- write('Erreur : impossible de modifier la piece, non presente dans la base.'),
 					nl,
 					fail.
 change_p([(Depart,_)|Q], (Depart, Arrivee, Orientation), [(Arrivee,Orientation)|Q]).
-change_p([T|Q], Coup, [T|newQ]) :- change_p(Q, Coup, newQ). 
+change_p([T|Q], Coup, [T|NewQ]) :- change_p(Q, Coup, NewQ). 
 
 %Historique non vide = poussee, changements multiples de pions
 modifier_plateau(P, (Depart,Arrivee,Orientation), NP, H) :- reverse(H, InvH),
-															change_pion(P, Orientation, NP, InvH).
-															
-change_pion(P, n, NP, [T|Q]) :- change_pion(P, n, NP, Q).
-%change_pion(P, e, NP, H) :- .
-%change_pion(P, s, NP, H) :- .
-%change_pion(P, w, NP, H) :- .
+															modifier_plateau(P, (Depart,Arrivee,Orientation), TmpP, _),
+															change_pion(TmpP, Orientation, NP, InvH).
+								
+%Quand historique vide = plus de modifications à apporter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%               Modification d'une montagne             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+change_pion([E,R,M,J], O, NewPlateau, [(m,Case)|Q]) :- 	change_montagne(M, Case, TmpM, O), 
+										change_pion([E,R,TmpM,J], O, NewPlateau, Q).
+
+change_montagne([Case|Q], Case, [NewCase|Q], n) :- NewCase is Case + 10.
+change_montagne([Case|Q], Case, [NewCase|Q], e) :- NewCase is Case + 1.
+change_montagne([Case|Q], Case, [NewCase|Q], s) :- NewCase is Case - 10.
+change_montagne([Case|Q], Case, [NewCase|Q], w) :- NewCase is Case - 1.
+change_montagne([T|Q], Case, [T|NewQ], O) :- change_montagne(Q, Case, NewQ, O).
+
+
+change_pion([E,R,M,J], O, NewPlateau, [(e, Case, O)|Q]) :- 	change_animal(E, Case, TmpE, O), 
+										change_pion([TmpE,R,M,J], O, NewPlateau, Q).
+change_pion([E,R,M,J], O, NewPlateau, [(r, Case, O)|Q]) :- 	change_animal(R, Case, TmpR, O), 
+										change_pion([E,TmpR,M,J], O, NewPlateau, Q).
+change_animal([(Case,Orientation)|Q], Case, [(NewCase,Orientation)|Q], n) :- NewCase is Case + 10.
+change_animal([(Case,Orientation)|Q], Case, [(NewCase,Orientation)|Q], e) :- NewCase is Case + 1.
+change_animal([(Case,Orientation)|Q], Case, [(NewCase,Orientation)|Q], s) :- NewCase is Case - 10.
+change_animal([(Case,Orientation)|Q], Case, [(NewCase,Orientation)|Q], w) :- NewCase is Case - 1.
+change_animal([T|Q], Case, [T|NewQ], O) :- change_animal(Q, Case, NewQ, O).
 							
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
