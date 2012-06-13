@@ -82,6 +82,18 @@ verifier_deplacement_plateau(10).
 verifier_arrivee(0,0,_,_,[]) :-	write('Vous etes obliges d\'effectuer un deplacement'),
 								fail.
 
+%Entrée sur plateau sur une case vide
+verifier_arrivee(0,Arrivee,Orientation,Plateau,[]) :-	
+							write('Verification case arrivee pour Entree sur case vide'), nl,
+							case_valide(Arrivee),
+							write('1'),nl,
+							\+ verifier_case_vide(Arrivee,Plateau),
+							write('2'),nl,
+							%test maintenant la validité du coup
+							verifier_entree_plateau(Arrivee), 
+							write('3'),nl,
+							!.
+							
 %Entrée sur plateau avec poussée
 verifier_arrivee(0, Arrivee, Orientation, Plateau, Historique) :-
 							write('Verification case arrivee pour Entree sur plateau avec poussee'), nl,
@@ -93,15 +105,8 @@ verifier_arrivee(0, Arrivee, Orientation, Plateau, Historique) :-
 							oriente_pour_pousser(0, Arrivee, Orientation),
 							%verifier que la poussée est valide
 							poussee_possible(Arrivee,Orientation,Plateau, Historique),
-							write(Orientation),!.
-
-%Entrée sur plateau sur une case vide
-verifier_arrivee(0,Arrivee,Orientation,Plateau,[]) :-	
-							write('Verification case arrivee pour Entree sur case vide'), nl,
-							case_valide(Arrivee),
-							verifier_case_vide(Arrivee,Plateau),
-							%test maintenant la validité du coup
-							verifier_entree_plateau(Arrivee), !.
+							write('FIN verification entree sur plateau avec poussee'),nl,
+							write(Orientation),!.							
 
 %Déplacement sur une case vide
 verifier_arrivee(Depart,Arrivee,Orientation,Plateau,[]) :-	
@@ -131,11 +136,13 @@ verifier_arrivee(Depart,Arrivee,Orientation,Plateau,Historique) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Vérifie que la case ne contient rien
-verifier_case_vide(Case,Plateau) :- 	
-					write('Verification case vide'), nl,
+verifier_case_vide(Case,Plateau) :- write('1.1'), nl,
 					\+ elephant(Plateau,Case),
+					write('1.2'), nl,
 					\+ rhinoceros(Plateau,Case),
-					\+ montagne(Plateau,Case).
+					write('1.3'), nl,
+					\+ montagne(Plateau,Case),
+					write('1.4'), nl.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -456,10 +463,8 @@ partie_SIAM :-
 							[32,33,34],
 							e
 						])),
-			repeat,
 			plateau_courant(P),
-			afficher_plateau(P),
-			afficher_joueur_courant(P),
+			repeat,
 			tour(P, H, C),
 			fin_partie(P, H, C),
 			write('La partie est finie.').
@@ -473,10 +478,15 @@ afficher_joueur_courant(P) :- 	write('Au tour des rhinoceros de jouer.'), nl.
 % - Réallocation du plateau de jeu dynamiquement
 % - Affichage du vainqueur si montagne hors du jeu.
 					
-tour(NouveauPlateau, Historique, Coup) :- 
+tour(Plateau, Historique, Coup) :- 
+						afficher_plateau(Plateau),
+						write('#####################################'), nl,
 						write('Tour de jeu'), nl,
+						afficher_joueur_courant(Plateau),
+						write('#####################################'), nl,
 						saisir_coup(Plateau, Coup, Historique),
-						jouer_coup(Plateau, Coup, NouveauPlateau, Historique).					
+						jouer_coup(Plateau, Coup, Historique),
+						plateau_courant(Plateau).					
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -487,20 +497,18 @@ saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-
 							write('Choisissez votre pion'), nl,
 							read(Depart),
 							verifier_depart(Depart, Plateau), !,
-							write('Case de depart valide'), nl,
 							repeat,
 							write('Choisissez la case d\'arrivee'), nl,
 							read(Arrivee),
 							write('Choisissez l\'orientation de votre pion'), nl,
 							read(Orientation),
-							verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique),
-							write('Case d\'arrivee valide'), nl,	!.
+							verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique), !.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-jouer_coup(P, Coup, NP, H) :- 	
+jouer_coup(P, Coup, H) :- 	
 				write('Modifier le plateau en fonction du coup joue'), nl,
 				modifier_plateau(P, Coup, NP, H),
 				retractall(plateau_courant),

@@ -112,8 +112,8 @@ affiche_lignes(NbLignes, NbCases, P):-	TmpLignes is NbLignes - 1,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 elephant([E|_],Case) :- 	member((Case,_),E).
-rhinoceros( [_,R|_], Case) :- 	member((Case,_),R).
-montagne( [_,_,M,_], Case) :- 	member(Case,M).
+rhinoceros([_,R|_], Case) :- 	member((Case,_),R).
+montagne([_,_,M|_], Case) :- 	member(Case,M).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Récupérer le contenu d'une case (si non vide)
