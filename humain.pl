@@ -447,18 +447,12 @@ test_force_masse(Force, Masse) :- 	Force > 0,
 % -Test fin de partie? Si non, on retourne au point de choix créé par repeat, si oui, partie finie.
 
 partie_SIAM :-
-			asserta(plateau_courant([
-							[(0,0),(0,0),(0,0),(0,0),(0,0)],
-							[(0,0),(0,0),(0,0),(0,0),(0,0)],
-							[32,33,34],
-							e
-						])),
+			asserta(plateau_courant([[(0,0),(0,0),(0,0),(0,0),(0,0)],[(0,0),(0,0),(0,0),(0,0),(0,0)],[32,33,34],e])),
 			repeat,
 			plateau_courant(P),
-			tour(P, H, C, NP),
-			write('NP : '), write(NP), nl, write('P : '), write(P), nl,
-			fin_partie(NP, H, C), !,
-			write('La partie est finie.'), nl.
+			tour(P, H, C),
+			fin_partie(P, H, C),
+			write('La partie est finie.').
 
 afficher_joueur_courant([_,_,_,e]) :- write('Au tour des elephants de jouer.'), nl.
 afficher_joueur_courant([_,_,_,r]) :- write('Au tour des rhinoceros de jouer.'), nl.
@@ -468,14 +462,14 @@ afficher_joueur_courant([_,_,_,r]) :- write('Au tour des rhinoceros de jouer.'),
 % - Réallocation du plateau de jeu dynamiquement
 % - Affichage du vainqueur si montagne hors du jeu.
 					
-tour(Plateau, Historique, Coup, NouveauPlateau) :- 
+tour(Plateau, Historique, Coup) :- 
 						afficher_plateau(Plateau),
 						write('#####################################'), nl,
 						write('Tour de jeu'), nl,
 						afficher_joueur_courant(Plateau),
 						write('#####################################'), nl,
 						saisir_coup(Plateau, Coup, Historique),
-						jouer_coup(Plateau, Coup, Historique, NouveauPlateau).					
+						jouer_coup(Plateau, Coup, Historique).					
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -497,7 +491,7 @@ saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-jouer_coup(P, Coup, H, NP) :- 	
+jouer_coup(P, Coup, H) :- 	
 				write('Modifier le plateau en fonction du coup joue'), nl,
 				modifier_plateau(P, Coup, NP, H),
 				retractall(plateau_courant(_)),
