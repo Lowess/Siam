@@ -79,10 +79,12 @@ verifier_deplacement_plateau(10).
 
 %Ne peut laisser son pion hors du jeu car obligation de changer l'orientation
 %de la pièce si celle-ci ne change pas de case
-verifier_arrivee(0,0,_,_,[]) :-	fail.
+verifier_arrivee(0,0,_,_,[]) :-	write('Vous etes obliges d\'effectuer un deplacement'),
+								fail.
 
 %Entrée sur plateau avec poussée
-verifier_arrivee(0, Arrivee, Orientation, Plateau, Historique) :-	
+verifier_arrivee(0, Arrivee, Orientation, Plateau, Historique) :-
+							write('Verification case arrivee pour Entree sur plateau avec poussee'), nl,
 							%verification que la case d'arrivée appartient bien au plateau 
 							case_valide(Arrivee),
 							%test maintenant la validité du coup				
@@ -94,13 +96,18 @@ verifier_arrivee(0, Arrivee, Orientation, Plateau, Historique) :-
 							write(Orientation),!.
 
 %Entrée sur plateau sur une case vide
-verifier_arrivee(0,Arrivee,Orientation,Plateau,[]) :-	case_valide(Arrivee),
+verifier_arrivee(0,Arrivee,Orientation,Plateau,[]) :-	
+							write('Verification case arrivee pour Entree sur case vide'), nl,
+							case_valide(Arrivee),
 							verifier_case_vide(Arrivee,Plateau),
 							%test maintenant la validité du coup
 							verifier_entree_plateau(Arrivee), !.
 
 %Déplacement sur une case vide
-verifier_arrivee(Depart,Arrivee,Orientation,Plateau,[]) :-	case_valide(Arrivee),
+verifier_arrivee(Depart,Arrivee,Orientation,Plateau,[]) :-	
+							\+ Depart = 0,
+							write('Verification case arrivee pour Deplacement sur case vide'), nl,
+							case_valide(Arrivee),
 							verifier_case_vide(Arrivee,Plateau),!,
 							%Orientationn test maintenant la validité du coup
 							%Case Arrivee = Depart +/- 1 OU Depart +/- 10
@@ -108,9 +115,12 @@ verifier_arrivee(Depart,Arrivee,Orientation,Plateau,[]) :-	case_valide(Arrivee),
 							verifier_deplacement_plateau(Tmp).
 							
 %Déplacement sur plateau avec poussée
-verifier_arrivee(Depart,Arrivee,Orientation,Plateau,Historique) :-	case_valide(Arrivee),
+verifier_arrivee(Depart,Arrivee,Orientation,Plateau,Historique) :-	
+							\+ Depart = 0,
+							write('Verification case arrivee pour Deplacement sur plateau avec poussee'), nl,
+							case_valide(Arrivee),
 							%Test la validité du coup
-							Tmp is Depart-Arrivee,
+							Tmp is Depart - Arrivee,
 							verifier_deplacement_plateau(Tmp),
 							%verifier que la poussée est valide
 							poussee_possible(Arrivee,Orientation,Plateau,Historique).
@@ -121,7 +131,9 @@ verifier_arrivee(Depart,Arrivee,Orientation,Plateau,Historique) :-	case_valide(A
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Vérifie que la case ne contient rien
-verifier_case_vide(Case,Plateau) :- 	\+ elephant(Plateau,Case),
+verifier_case_vide(Case,Plateau) :- 	
+					write('Verification case vide'), nl,
+					\+ elephant(Plateau,Case),
 					\+ rhinoceros(Plateau,Case),
 					\+ montagne(Plateau,Case).
 
@@ -153,10 +165,13 @@ orientation_identique(Orientation,Case,Plateau) :- 	get_orientation(Plateau, Cas
 %	--> 2) On sort du plateau
 
 % 1)
-genere_liste_force_masse(Case, _, Plateau, (_,_), []):- verifier_case_vide(Case,Plateau), !.
+genere_liste_force_masse(Case, _, Plateau, (_,_), []):- 
+														write('Fin de generation liste force masse quand case vide'), nl,
+														verifier_case_vide(Case,Plateau), !.
 
 % 2)
-genere_liste_force_masse(Case, _, _, (_,_), []):- \+ case_valide(Case), !.
+genere_liste_force_masse(Case, _, _, (_,_), []):- write('Fin de generation liste force masse quand case non valide'), nl,
+												\+ case_valide(Case), !.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%Poussée vers le NORD
@@ -199,6 +214,7 @@ genere_liste_force_masse(Case, n, Plateau, (Force,Masse), [Pion|Historique]):-
 %	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
 %									 v
 genere_liste_force_masse(Case, n, Plateau, (Force,Masse), [Pion|Historique]):- 
+	write('Genere liste force masse avec poussee vers nord'), nl,
 	CaseSuivante is Case + 10,
 	get_pion(Plateau, Case, Pion),
 	genere_liste_force_masse(CaseSuivante, n, Plateau, (Force, Masse), Historique).
@@ -244,6 +260,7 @@ genere_liste_force_masse(Case, s, Plateau, (Force,Masse), [Pion|Historique]):-
 %	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
 %									 v
 genere_liste_force_masse(Case, s, Plateau, (Force,Masse), [Pion|Historique]):- 
+	write('Genere liste force masse avec poussee vers sud'), nl,
 	CaseSuivante is Case - 10,
 	get_pion(Plateau, Case, Pion),
 	genere_liste_force_masse(CaseSuivante, s, Plateau, (Force, Masse), Historique).
@@ -289,6 +306,7 @@ genere_liste_force_masse(Case, w, Plateau, (Force,Masse), [Pion|Historique]):-
 %	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
 %									 v
 genere_liste_force_masse(Case, w, Plateau, (Force,Masse), [Pion|Historique]):- 
+	write('Genere liste force masse avec poussee vers ouest'), nl,
 	CaseSuivante is Case - 1,
 	get_pion(Plateau, Case, Pion),
 	genere_liste_force_masse(CaseSuivante, w, Plateau, (Force, Masse), Historique).
@@ -330,10 +348,12 @@ genere_liste_force_masse(Case, e, Plateau, (Force,Masse), [Pion|Historique]):-
 	test_force_masse(NewForce,Masse),
 	get_pion(Plateau, Case, Pion),
 	genere_liste_force_masse(CaseSuivante, e, Plateau, (NewForce, Masse), Historique).
+	
 %									 ^
 %	--> Poussée d'un animal avec des forces qui ne change rien e--> r|
 %									 v
 genere_liste_force_masse(Case, e, Plateau, (Force,Masse), [Pion|Historique]):- 
+	write('Genere liste force masse avec poussee vers est'), nl,
 	CaseSuivante is Case + 1,
 	get_pion(Plateau, Case, Pion),
 	genere_liste_force_masse(CaseSuivante, e, Plateau, (Force, Masse), Historique).
@@ -360,23 +380,27 @@ oriente_pour_pousser(0, 51, e):- !. % (C4)
 
 %Entrée par un bord du plateau (les 4 coins étant exclus car traités précédement)
 oriente_pour_pousser(0, 12, n):- !.			%	(C4)		(4)		(C3)
-oriente_pour_pousser(0, 13, n):- !. % (1)		%	---------------------------------
+oriente_pour_pousser(0, 13, n):- !. 		% (1)		
+											%	---------------------------------
 oriente_pour_pousser(0, 14, n):- !.			%	|				|
-							%	|				|
-							%	|				|
+											%	|				|
+											%	|				|
 oriente_pour_pousser(0, 21, e):- !.			%	|				|
-oriente_pour_pousser(0, 31, e):- !. % (2)		%	|				|
+oriente_pour_pousser(0, 31, e):- !. 		% (2)		
+											%	|				|
 oriente_pour_pousser(0, 41, e):- !.			%	|				|
-							%   (2)	|	  PLATEAU DE JEU	| (3)
-							%	|				|
+											%   (2)	|	  PLATEAU DE JEU	| (3)
+											%	|				|
 oriente_pour_pousser(0, 25, w):- !.			%	|				|
-oriente_pour_pousser(0, 35, w):- !. % (3)		%	|				|
+oriente_pour_pousser(0, 35, w):- !. 		% (3)		
+											%	|				|
 oriente_pour_pousser(0, 45, w):- !.			%	|				|
-							%	|				|
+											%	|				|
 oriente_pour_pousser(0, 52, s):- !.			%	|				|
-oriente_pour_pousser(0, 53, s):- !. % (4)		%	|				|
+oriente_pour_pousser(0, 53, s):- !. 		% (4)		
+											%	|				|
 oriente_pour_pousser(0, 54, s):- !.			%	---------------------------------
-							%	(C1)		(1)		(C2)
+											%	(C1)		(1)		(C2)
 
 %oriente_pour_pousser(Depart, Arrivee, n).
 					    
@@ -449,7 +473,8 @@ afficher_joueur_courant(P) :- 	write('Au tour des rhinoceros de jouer.'), nl.
 % - Réallocation du plateau de jeu dynamiquement
 % - Affichage du vainqueur si montagne hors du jeu.
 					
-tour(NouveauPlateau, Historique, Coup) :- 	
+tour(NouveauPlateau, Historique, Coup) :- 
+						write('Tour de jeu'), nl,
 						saisir_coup(Plateau, Coup, Historique),
 						jouer_coup(Plateau, Coup, NouveauPlateau, Historique).					
 
@@ -459,22 +484,25 @@ tour(NouveauPlateau, Historique, Coup) :-
 							
 saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-	
 							repeat,
-							write('Choisissez votre pion'),
-							nl,
+							write('Choisissez votre pion'), nl,
 							read(Depart),
-							verifier_depart(Depart, Plateau),!,
+							verifier_depart(Depart, Plateau), !,
+							write('Case de depart valide'), nl,
 							repeat,
 							write('Choisissez la case d\'arrivee'), nl,
-							read(Arrivee), nl,
+							read(Arrivee),
 							write('Choisissez l\'orientation de votre pion'), nl,
-							read(Orientation), nl,
-							verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique), !.
+							read(Orientation),
+							verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique),
+							write('Case d\'arrivee valide'), nl,	!.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-jouer_coup(P, Coup, NP, H) :- 	modifier_plateau(P, Coup, NP, H),
+jouer_coup(P, Coup, NP, H) :- 	
+				write('Modifier le plateau en fonction du coup joue'), nl,
+				modifier_plateau(P, Coup, NP, H),
 				retractall(plateau_courant),
 				asserta(plateau_courant(NP)).
 
