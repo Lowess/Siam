@@ -112,8 +112,8 @@ affiche_lignes(NbLignes, NbCases, P):-	TmpLignes is NbLignes - 1,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 elephant([E|_],Case) :- 	member((Case,_),E).
-rhinoceros( [_,R|_], Case) :- 	member((Case,_),R).
-montagne( [_,_,M,_], Case) :- 	member(Case,M).
+rhinoceros([_,R|_], Case) :- 	member((Case,_),R).
+montagne([_,_,M|_], Case) :- 	member(Case,M).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Récupérer le contenu d'une case (si non vide)
@@ -231,10 +231,10 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 				write('Nom du joueur: '),
 				write(Jou), nl,
 	
-				nombre_pieces_restantes(R,NbEle), %Affiche le nombre d'éléphants restants
+				nombre_pieces_restantes([E,R,M,J],NbEle), %Affiche le nombre d'éléphants restants
 				write('Nombre d\'elephants a faire entrer en jeu: '),  
 				write(NbEle), nl,
 
-				nombre_pieces_restantes(E,NbRhi), %Affiche le nombre de rhinocéros restants
+				nombre_pieces_restantes([E,R,M,J],NbRhi), %Affiche le nombre de rhinocéros restants
 				write('Nombre de rhinoceros a faire entrer en jeu: '),
 				write(NbRhi), nl.

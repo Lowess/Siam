@@ -457,14 +457,9 @@ test_force_masse(Force, Masse) :- 	Force > 0,
 % -Test fin de partie? Si non, on retourne au point de choix créé par repeat, si oui, partie finie.
 
 partie_SIAM :-
-			asserta(plateau_courant([
-							[(0,0),(0,0),(0,0),(0,0),(0,0)],
-							[(0,0),(0,0),(0,0),(0,0),(0,0)],
-							[32,33,34],
-							e
-						])),
-			plateau_courant(P),
+			asserta(plateau_courant([[(0,0),(0,0),(0,0),(0,0),(0,0)],[(0,0),(0,0),(0,0),(0,0),(0,0)],[32,33,34],e])),
 			repeat,
+			plateau_courant(P),
 			tour(P, H, C),
 			fin_partie(P, H, C),
 			write('La partie est finie.').
@@ -485,8 +480,8 @@ tour(Plateau, Historique, Coup) :-
 						afficher_joueur_courant(Plateau),
 						write('#####################################'), nl,
 						saisir_coup(Plateau, Coup, Historique),
-						jouer_coup(Plateau, Coup, Historique),
-						plateau_courant(Plateau).					
+						jouer_coup(Plateau, Coup, Historique, NP),
+						plateau_courant(NP).					
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -508,10 +503,10 @@ saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-jouer_coup(P, Coup, H) :- 	
+jouer_coup(P, Coup, H, NP) :- 	
 				write('Modifier le plateau en fonction du coup joue'), nl,
 				modifier_plateau(P, Coup, NP, H),
-				retractall(plateau_courant),
+				retractall(plateau_courant(_)),
 				asserta(plateau_courant(NP)).
 
 %Historique vide = pas de poussee
@@ -523,9 +518,10 @@ modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,NewR,M,e], []) :- c
 modifier_plateau([E,R,M,e], (Depart,Arrivee,Orientation), [E,R,M,r], H) :- reverse(H, InvH),
 															modifier_plateau(P, (Depart,Arrivee,Orientation), TmpP, _),
 															change_pion(TmpP, Orientation, NP, InvH).
-modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,R,M,e], H) :- reverse(H, InvH),
-															modifier_plateau(P, (Depart,Arrivee,Orientation), TmpP, _),
-															change_pion(TmpP, Orientation, NP, InvH).
+modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,R,M,e], H) :- 
+	reverse(H, InvH),
+	modifier_plateau(P, (Depart,Arrivee,Orientation), TmpP, _),
+	change_pion(TmpP, Orientation, NP, InvH).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                  Modification des pions               %
