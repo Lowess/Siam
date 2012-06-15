@@ -76,6 +76,9 @@ verifier_deplacement_plateau(10).
 %de la pièce si celle-ci ne change pas de case
 verifier_arrivee(0,0,_,_,[]) :-	write('Vous etes obliges d\'effectuer un deplacement'),
 								fail.
+								
+verifier_arrivee(Depart,Depart,Orientation,Plateau,[]) :- get_pion(Plateau, Depart, (_,_,O)), 
+															\+ O = Orientation.
 
 %Entrée sur plateau sur une case vide
 verifier_arrivee(0,Arrivee,Orientation,Plateau,[]) :-	
@@ -111,7 +114,7 @@ verifier_arrivee(Depart,Arrivee,Orientation,Plateau,[]) :-
 							verifier_deplacement_plateau(Tmp).
 							
 %Déplacement sur plateau avec poussée
-verifier_arrivee(Depart,Arrivee,Orientation,Plateau,Historique) :-	
+verifier_arrivee(Depart,Arrivee,Orientation,Plateau, Historique) :-	
 							\+ Depart = 0,
 							write('Verification case arrivee pour Deplacement sur plateau avec poussee'), nl,
 							case_valide(Arrivee),
@@ -119,7 +122,12 @@ verifier_arrivee(Depart,Arrivee,Orientation,Plateau,Historique) :-
 							Tmp is Depart - Arrivee,
 							verifier_deplacement_plateau(Tmp),
 							%verifier que la poussée est valide
-							poussee_possible(Arrivee,Orientation,Plateau,Historique).
+							poussee_possible(Arrivee,Orientation,Plateau,Historique),
+							!.
+							
+verifier_arrivee(Depart,0,_,Plateau,[]) :-	
+							write('Verification case Depart pour sortie de plateau'), nl,
+							verifier_entree_plateau(Depart).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Vérifie que la case ne contient rien
@@ -438,10 +446,9 @@ partie_SIAM :-
 			retractall(plateau_courant(_)),
 			asserta(plateau_courant([[(0,0),(0,0),(0,0),(0,0),(0,0)],[(0,0),(0,0),(0,0),(0,0),(0,0)],[32,33,34],e])),
 			repeat,
-			plateau_courant(P),
-			tour(P, H, C), nl,
-			write(H),
-			fin_partie(P, H, C),
+			plateau_courant(Plateau),
+			tour(Plateau, Historique, Coup), nl,
+			fin_partie(Plateau, Historique, Coup),
 			write('La partie est finie.').
 
 afficher_joueur_courant([_,_,_,e]) :- write('Au tour des elephants de jouer.'), nl.
@@ -517,23 +524,38 @@ change_pion([E,R,M,J], (m,Case), Orientation, [E,R,NewM,J]) :- change_montagne(M
 change_pion([E,R,M,J], (e,Case,O), Orientation, [NewE,R,M,J]) :- change_animal(E, Case, Orientation, NewE). 
 change_pion([E,R,M,J], (r,Case,O), Orientation, [E,NewR,M,J]) :- change_animal(R, Case, Orientation, NewR). 
 
-change_montagne([Case|Q], Case, n, [NewCase|Q]) :- NewCase is Case + 10.
-change_montagne([Case|Q], Case, e, [NewCase|Q]) :- NewCase is Case + 1.
-change_montagne([Case|Q], Case, s, [NewCase|Q]) :- NewCase is Case - 10.
-change_montagne([Case|Q], Case, w, [NewCase|Q]) :- NewCase is Case - 1.
+change_montagne([Case|Q], Case, n, [NewCase|Q]) :- NewCase is Case + 10,
+												   case_valide(NewCase),!.
+change_montagne([Case|Q], Case, n, [0|Q]).
+change_montagne([Case|Q], Case, e, [NewCase|Q]) :- NewCase is Case + 1,
+													case_valide(NewCase),!.
+change_montagne([Case|Q], Case, e, [0|Q]).
+change_montagne([Case|Q], Case, s, [NewCase|Q]) :- NewCase is Case - 10,
+													case_valide(NewCase),!.
+change_montagne([Case|Q], Case, s, [0|Q]).
+change_montagne([Case|Q], Case, w, [NewCase|Q]) :- NewCase is Case - 1,
+													case_valide(NewCase),!.
+change_montagne([Case|Q], Case, w, [0|Q]).
 change_montagne([T|Q], Case, [T|NewQ], O) :- change_montagne(Q, Case, NewQ, O).
 
-change_animal([(Case,Orientation)|Q], Case, n, [(NewCase,Orientation)|Q]) :- NewCase is Case + 10.
-change_animal([(Case,Orientation)|Q], Case, e, [(NewCase,Orientation)|Q]) :- NewCase is Case + 1.
-change_animal([(Case,Orientation)|Q], Case, s, [(NewCase,Orientation)|Q]) :- NewCase is Case - 10.
-change_animal([(Case,Orientation)|Q], Case, w, [(NewCase,Orientation)|Q]) :- NewCase is Case - 1.
+change_animal([(Case,Orientation)|Q], Case, n, [(NewCase,Orientation)|Q]) :- NewCase is Case + 10,
+																			case_valide(NewCase),!.
+change_animal([(Case,Orientation)|Q], Case, n, [(0,0)|Q]).
+change_animal([(Case,Orientation)|Q], Case, e, [(NewCase,Orientation)|Q]) :- NewCase is Case + 1,
+																			case_valide(NewCase),!.
+change_animal([(Case,Orientation)|Q], Case, e, [(0,0)|Q]).
+change_animal([(Case,Orientation)|Q], Case, s, [(NewCase,Orientation)|Q]) :- NewCase is Case - 10,
+																			case_valide(NewCase),!.
+change_animal([(Case,Orientation)|Q], Case, s, [(0,0)|Q]).
+change_animal([(Case,Orientation)|Q], Case, w, [(NewCase,Orientation)|Q]) :- NewCase is Case - 1,
+																			case_valide(NewCase),!.
+change_animal([(Case,Orientation)|Q], Case, w, [(0,0)|Q]).
 change_animal([T|Q], Case, [T|NewQ], O) :- change_animal(Q, Case, O, NewQ).
 							
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Fin de partie : vérification si une montagne est hors-limites
-%				détermination du vainqueur si oui.					
+%Fin de partie : vérification si une montagne est hors-limites, détermination du vainqueur si oui.					
 					
 fin_partie([E,R,M,J], H, C) :- write('Fin de partie?'), nl,
 								montagne_out(M), 
