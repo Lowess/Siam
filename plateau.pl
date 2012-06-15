@@ -208,11 +208,11 @@ afficher_joueur([_,_,_,J], J).
 %le nombre de pièce hors plateau
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-nombre_pieces_restantes([E,R,_,J], Nb) :- 	J=e,
-						nombre_pieces_restantes2(E,Nb).
+nombre_pieces_restantes([E,R,_,_], NbEl, NbRhi) :- nombre_pieces_restantes2(E,NbEl),
+										nombre_pieces_restantes2(R,NbRhi).
 
-nombre_pieces_restantes([E,R,_,J], Nb) :- 	J=r,
-						nombre_pieces_restantes2(R,Nb).
+%nombre_pieces_restantes([E,R,_,J], Nb) :- 	J=r,
+						
 
 nombre_pieces_restantes2([],0):- !.
 nombre_pieces_restantes2([(0,0)|Q],Nb):- 	nombre_pieces_restantes2(Q,Tmp),
@@ -232,10 +232,8 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 				write('Nom du joueur: '),
 				write(Jou), nl,
 	
-				nombre_pieces_restantes([E,R,M,J],NbEle), %Affiche le nombre d'éléphants restants
+				nombre_pieces_restantes([E,R,M,J],NbEle,NbRhi), %Affiche le nombre d'éléphants restants
 				write('Nombre d\'elephants a faire entrer en jeu: '),  
 				write(NbEle), nl,
-
-				nombre_pieces_restantes([E,R,M,J],NbRhi), %Affiche le nombre de rhinocéros restants
 				write('Nombre de rhinoceros a faire entrer en jeu: '),
 				write(NbRhi), nl.
