@@ -444,12 +444,12 @@ test_force_masse(Force, Masse) :- 	Force > 0,
 
 partie_SIAM :-
 			retractall(plateau_courant(_)),
-			asserta(plateau_courant([[(0,0),(0,0),(0,0),(0,0),(0,0)],[(0,0),(0,0),(0,0),(0,0),(0,0)],[32,33,34],e])),
+			asserta(plateau_courant([[(42,e),(0,0),(0,0),(0,0),(0,0)],[(32,n),(0,0),(0,0),(0,0),(0,0)],[52,33,34],e])),
 			repeat,
 			plateau_courant(Plateau),
-			tour(Plateau, Historique, Coup), nl,
-			fin_partie(Plateau, Historique, Coup),
-			write('La partie est finie.').
+			tour(Plateau, Historique, Coup, Fin), nl,
+			fin_partie(Plateau, Historique, Coup, Fin),
+			write('La partie est finie.'),!.
 
 afficher_joueur_courant([_,_,_,e]) :- write('Au tour des elephants de jouer.'), nl.
 afficher_joueur_courant([_,_,_,r]) :- write('Au tour des rhinoceros de jouer.'), nl.
@@ -459,14 +459,14 @@ afficher_joueur_courant([_,_,_,r]) :- write('Au tour des rhinoceros de jouer.'),
 % - Réallocation du plateau de jeu dynamiquement
 % - Affichage du vainqueur si montagne hors du jeu.
 					
-tour(Plateau, Historique, Coup) :- 
+tour(Plateau, Historique, Coup, Fin) :- 
 						afficher_plateau(Plateau),
 						write('#####################################'), nl,
 						write('Tour de jeu'), nl,
 						afficher_joueur_courant(Plateau),
 						write('#####################################'), nl,
 						saisir_coup(Plateau, Coup, Historique),
-						jouer_coup(Plateau, Coup, Historique).					
+						jouer_coup(Plateau, Coup, Historique, Fin).					
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-	
@@ -486,13 +486,14 @@ saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-
 							verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique), !.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-jouer_coup(Plateau, Coup, Histo) :- 	
+jouer_coup(Plateau, Coup, Histo, Fin) :- 	
 				write('Modifier le plateau en fonction du coup joue'), nl,
 				reverse(Histo, ReversedHisto),
 				modifier_plateau(Plateau, Coup, TmpPlateau, ReversedHisto),
 				change_joueur(TmpPlateau, NouveauPlateau),
 				retractall(plateau_courant(_)),
-				asserta(plateau_courant(NouveauPlateau)).
+				asserta(plateau_courant(NouveauPlateau)),
+				tester_fin(Fin, NouveauPlateau).
 
 change_joueur([E,R,M,e], [E,R,M,r]).
 change_joueur([E,R,M,r], [E,R,M,e]).
@@ -557,9 +558,10 @@ change_animal([T|Q], Case, [T|NewQ], O) :- change_animal(Q, Case, O, NewQ).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Fin de partie : vérification si une montagne est hors-limites, détermination du vainqueur si oui.					
 					
-fin_partie([E,R,M,J], H, C) :- write('Fin de partie?'), nl,
-								montagne_out(M), 
-								afficher_gagnant(H, [E,R,M,J], C).
+fin_partie([E,R,M,J], H, C, 0) :- afficher_gagnant(H, [E,R,M,J], C),!.
+
+tester_fin(0, [E,R,M,J]) :- montagne_out(M),!.
+tester_fin(1, [E,R,M,J]). 
 
 montagne_out([0,_,_]).
 montagne_out([_,0,_]).
@@ -567,7 +569,7 @@ montagne_out([_,_,0]).
 					
 afficher_gagnant(Histo, Plateau, (_,_,Orientation)) :- reverse(Histo, ReversedHisto),
 							trim_historique(ReversedHisto, NewHisto),
-							test_orientation(NewHisto, Orientation, Plateau, e),
+							test_orientation(NewHisto, Orientation, Plateau, e),!,
 							write('Les elephants ont gagne!'), nl.
 													
 afficher_gagnant(_, _, _) :- write('Les rhinoceros ont gagne!'), nl.
@@ -578,11 +580,11 @@ trim_historique([_|Q], NewH) :- trim_historique(Q, NewH).
 
 %Si historique vide : pion qui a initié la poussée a gagné
 %Comme plateau déjà modifié (joueur différent de celui qui a joué), on renvoie l'autre joueur que le joueur courant
-test_orientation([], _, Plateau, r) :- afficher_joueur(Plateau, e).
-test_orientation([], _, Plateau, e) :- afficher_joueur(Plateau, r).
+test_orientation([], _, Plateau, e) :- afficher_joueur(Plateau, e),!.
+test_orientation([], _, Plateau, r) :- afficher_joueur(Plateau, r),!.
 
 test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- orientation_identique(O, Case, Plateau),!.
-test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- test_orientation(Q, O, Plateau).
+test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- test_orientation(Q, O, Plateau, Pion).
 						
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
