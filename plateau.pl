@@ -211,9 +211,6 @@ afficher_joueur([_,_,_,J], J).
 nombre_pieces_restantes([E,R,_,_], NbEl, NbRhi) :- nombre_pieces_restantes2(E,NbEl),
 										nombre_pieces_restantes2(R,NbRhi).
 
-%nombre_pieces_restantes([E,R,_,J], Nb) :- 	J=r,
-						
-
 nombre_pieces_restantes2([],0):- !.
 nombre_pieces_restantes2([(0,0)|Q],Nb):- 	nombre_pieces_restantes2(Q,Tmp),
 						!,
