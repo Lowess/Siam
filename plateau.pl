@@ -37,8 +37,8 @@
 
 plateau_test([
 		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[0,0,0],
+		[(21,n),(0,0),(0,0),(0,0),(0,0)],
+		[11,0,0],
 		e	
 	]).
 
@@ -232,10 +232,10 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 				write('Nom du joueur: '),
 				write(Jou), nl,
 	
-				nombre_pieces_restantes([E,R,M,J],NbEle), %Affiche le nombre d'éléphants restants
+				nombre_pieces_restantes([E,R,M,e],NbEle), %Affiche le nombre d'éléphants restants
 				write('Nombre d\'elephants a faire entrer en jeu: '),  
 				write(NbEle), nl,
 
-				nombre_pieces_restantes([E,R,M,J],NbRhi), %Affiche le nombre de rhinocéros restants
+				nombre_pieces_restantes([E,R,M,r],NbRhi), %Affiche le nombre de rhinocéros restants
 				write('Nombre de rhinoceros a faire entrer en jeu: '),
 				write(NbRhi), nl.
