@@ -1,11 +1,160 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                       HUMAIN.PL                          %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                    HUMAIN.PL                                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- include('plateau.pl').
+:- include('ia.pl').
 :- dynamic(plateau_courant/1).
 :- multifile(plateau_courant/1).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                         GESTION DE LA PARTIE DE SIAM                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Déroulement d'une partie de SIAM:
+% -Création dynamique du plateau de jeu initial
+% -Tour de jeu (avec réallocation dynamique du plateau de jeu), qui renvoie dans Fin un flag (0 ou 1),
+% indiquant si la partie est finie
+% -Si fin de partie (Fin = 0), affichage du gagnant
+%  Si non, on retourne au point de choix créé par repeat.
+
+partie_SIAM :-
+			retractall(plateau_courant(_)),
+			asserta(plateau_courant([[(42,n),(0,0),(0,0),(0,0),(0,0)],[(32,n),(0,0),(0,0),(0,0),(0,0)],[52,33,34],e])),
+			repeat,
+			plateau_courant(Plateau),
+			tour(Plateau, Historique, Coup, Fin), nl,
+			fin_partie(Plateau, Historique, Coup, Fin),
+			write('La partie est finie.'),!.
+
+afficher_joueur_courant([_,_,_,e]) :- write('Au tour des elephants de jouer.'), nl.
+afficher_joueur_courant([_,_,_,r]) :- write('Au tour des rhinoceros de jouer.'), nl.
+				
+%Déroulement d'un tour de jeu :
+% - Saisie du coup (vérification du joueur, des cases de départ et d'arrivée, si poussée possible.
+% - Réallocation du plateau de jeu dynamiquement
+					
+tour(Plateau, Historique, Coup, Fin) :- 
+						afficher_plateau(Plateau), nl,
+						write('#####################################'), nl,
+						write('            Tour de jeu              '), nl,
+						write('#####################################'), nl,
+						afficher_joueur_courant(Plateau),
+						write('#####################################'), nl,
+						saisir_coup(Plateau, Coup, Historique),
+						jouer_coup(Plateau, Coup, Historique, Fin).					
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-	
+							repeat,
+							nl, write('Choisissez votre pion'), nl,
+							read_term(Depart, [syntax_error(fail)]),
+							integer(Depart), verifier_depart(Depart, Plateau), !,
+							repeat,
+							write('Choisissez la case d\'arrivee'), nl,
+							read_term(Arrivee, [syntax_error(fail)]),
+							integer(Arrivee), 
+							write('Choisissez l\'orientation de votre pion'), nl,
+							read_term(Orientation, [syntax_error(fail)]), atom(Orientation), \+ number(Orientation), check_orientation(Orientation),
+							verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique), !.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+jouer_coup(Plateau, Coup, Histo, Fin) :- 	
+				reverse(Histo, ReversedHisto),
+				modifier_plateau(Plateau, Coup, TmpPlateau, ReversedHisto),
+				change_joueur(TmpPlateau, NouveauPlateau),
+				retractall(plateau_courant(_)),
+				asserta(plateau_courant(NouveauPlateau)),
+				tester_fin(Fin, NouveauPlateau).
+
+change_joueur([E,R,M,e], [E,R,M,r]).
+change_joueur([E,R,M,r], [E,R,M,e]).
+				
+%Historique vide = pas de poussee
+%Si joueur = e, on bouge un éléphant, et le joueur suivant jouera les rhinocéros, sinon inverse
+modifier_plateau([E,R,M,e], (Depart,Arrivee,Orientation), [NewE,R,M,e], []) :- 
+	change_p(E, (Depart,Arrivee,Orientation), NewE),!.
+modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,NewR,M,r], []) :- 
+	change_p(R, (Depart,Arrivee,Orientation), NewR),!.
+
+%Historique non vide = poussee, changements multiples de pions
+modifier_plateau(Plateau, (Depart,Arrivee,Orientation), NouveauPlateau, [T|Q]) :-
+	modifier_plateau(Plateau, (Depart,Arrivee,Orientation), TmpPlateau, Q),
+	change_pion(TmpPlateau, T, Orientation, NouveauPlateau).
+															
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                  Modification des pions               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+change_p([],_,[]) :- write('Erreur : impossible de modifier la piece, non presente dans la base.'), nl.
+change_p([(Depart,_)|Q], (Depart, Arrivee, Orientation), [(Arrivee,Orientation)|Q]).
+change_p([T|Q], Coup, [T|NewQ]) :- change_p(Q, Coup, NewQ). 
+								
+%Quand historique vide = plus de modifications à apporter
+change_pion([E,R,M,J], (m,Case), Orientation, [E,R,NewM,J]) :- change_montagne(M, Case, Orientation, NewM).
+change_pion([E,R,M,J], (e,Case,O), Orientation, [NewE,R,M,J]) :- change_animal(E, Case, Orientation, NewE). 
+change_pion([E,R,M,J], (r,Case,O), Orientation, [E,NewR,M,J]) :- change_animal(R, Case, Orientation, NewR). 
+
+change_montagne([Case|Q], Case, n, [NewCase|Q]) :- NewCase is Case + 10,
+												   case_valide(NewCase),!.
+change_montagne([Case|Q], Case, n, [0|Q]).
+change_montagne([Case|Q], Case, e, [NewCase|Q]) :- NewCase is Case + 1,
+													case_valide(NewCase),!.
+change_montagne([Case|Q], Case, e, [0|Q]).
+change_montagne([Case|Q], Case, s, [NewCase|Q]) :- NewCase is Case - 10,
+													case_valide(NewCase),!.
+change_montagne([Case|Q], Case, s, [0|Q]).
+change_montagne([Case|Q], Case, w, [NewCase|Q]) :- NewCase is Case - 1,
+													case_valide(NewCase),!.
+change_montagne([Case|Q], Case, w, [0|Q]).
+change_montagne([T|Q], Case, [T|NewQ], O) :- change_montagne(Q, Case, NewQ, O).
+
+change_animal([(Case,Orientation)|Q], Case, n, [(NewCase,Orientation)|Q]) :- NewCase is Case + 10,
+																			case_valide(NewCase),!.
+change_animal([(Case,Orientation)|Q], Case, n, [(0,0)|Q]).
+change_animal([(Case,Orientation)|Q], Case, e, [(NewCase,Orientation)|Q]) :- NewCase is Case + 1,
+																			case_valide(NewCase),!.
+change_animal([(Case,Orientation)|Q], Case, e, [(0,0)|Q]).
+change_animal([(Case,Orientation)|Q], Case, s, [(NewCase,Orientation)|Q]) :- NewCase is Case - 10,
+																			case_valide(NewCase),!.
+change_animal([(Case,Orientation)|Q], Case, s, [(0,0)|Q]).
+change_animal([(Case,Orientation)|Q], Case, w, [(NewCase,Orientation)|Q]) :- NewCase is Case - 1,
+																			case_valide(NewCase),!.
+change_animal([(Case,Orientation)|Q], Case, w, [(0,0)|Q]).
+change_animal([T|Q], Case, [T|NewQ], O) :- change_animal(Q, Case, O, NewQ).
+							
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Fin de partie : vérification si une montagne est hors-limites, détermination du vainqueur si oui
+
+tester_fin(0, [_,_,M,_]) :- montagne_out(M),!.
+tester_fin(1, _). 
+					
+fin_partie(Plateau, Histo, Coup, 0) :- afficher_gagnant(Histo, Plateau, Coup),!.
+
+montagne_out([0,_,_]).
+montagne_out([_,0,_]).
+montagne_out([_,_,0]).
+					
+afficher_gagnant(Histo, Plateau, (_,_,Orientation)) :- reverse(Histo, ReversedHisto),
+							trim_historique(ReversedHisto, NewHisto),
+							test_orientation(NewHisto, Orientation, Plateau, e),!,
+							write('Les elephants ont gagne!'), nl.
+													
+afficher_gagnant(_, _, _) :- write('Les rhinoceros ont gagne!'), nl.
+
+
+trim_historique([], []) :- write('Erreur : impossible de se retrouver avec un historique sans montagne dans le cas ou fin de partie'), nl.
+trim_historique([(m,_)|Q], Q) :- !.
+trim_historique([_|Q], NewH) :- trim_historique(Q, NewH).
+
+%Si historique vide : pion qui a initié la poussée a gagné
+%Comme plateau déjà modifié (joueur différent de celui qui a joué), on renvoie l'autre joueur que le joueur courant
+test_orientation([], _, Plateau, e) :- afficher_joueur(Plateau, e),!.
+test_orientation([], _, Plateau, r) :- afficher_joueur(Plateau, r),!.
+
+test_orientation([(Pion,Case,_)|_], O, Plateau, Pion) :- orientation_identique(O, Case, Plateau),!.
+test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- test_orientation(Q, O, Plateau, Pion).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -14,16 +163,21 @@
 %Vérifie que la case appartient au plateau
 case_valide(0).
 case_valide(Case) :- 	Case > 10, Case < 56,
-			T is Case mod 10,
-			T < 6, T > 0.
+						T is Case mod 10,
+						T < 6, T > 0.
 		
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+check_orientation(n).
+check_orientation(e).
+check_orientation(s).
+check_orientation(w).
+
 %%Vérifie que le joueur manipule ses pions
-verifier_depart(0, [E,R,M,e]) :- nombre_pieces_restantes2(E, NbAnimaux), NbAnimaux > 0.
-verifier_depart(0, [E,R,M,r]) :- nombre_pieces_restantes2(R, NbAnimaux), NbAnimaux > 0.
+verifier_depart(0, [E,_,_,e]) :- nombre_pieces_restantes2(E, NbAnimaux), NbAnimaux > 0.
+verifier_depart(0, [_,R,_,r]) :- nombre_pieces_restantes2(R, NbAnimaux), NbAnimaux > 0.
 
 %Si joue les elephants
 verifier_depart(Depart,Plateau) :-	case_valide(Depart),
@@ -55,11 +209,11 @@ verifier_entree_plateau(Arrivee) :-   	Depart is Arrivee // 10,
 					Depart=1, !.
 
 %Arrivée par l'ouest
-verifier_entree_plateau(Arrivee) :-   	Mod is Arrivee mod 10,
-					Mod=5, !.
+verifier_entree_plateau(Arrivee) :-   	Mod is Arrivee mod 5,
+					Mod=0, !.
 
 %Arrivée par l'est
-verifier_entree_plateau(Arrivee) :-   	Mod is Arrivee mod 10,
+verifier_entree_plateau(Arrivee) :-   	Mod is Arrivee mod 5,
 					Mod=1.
 
 
@@ -117,6 +271,7 @@ verifier_arrivee(Depart,Arrivee,Orientation,Plateau, Historique) :-
 							%Test la validité du coup
 							Tmp is Depart - Arrivee,
 							verifier_deplacement_plateau(Tmp),
+							oriente_pour_pousser(Depart,Arrivee,Orientation),
 							%verifier que la poussée est valide
 							poussee_possible(Arrivee,Orientation,Plateau,Historique),
 							!.
@@ -386,7 +541,13 @@ oriente_pour_pousser(0, 53, s):- !. 		% (4)
 oriente_pour_pousser(0, 54, s):- !.			%	---------------------------------
 											%	(C1)		(1)		(C2)
 
-%oriente_pour_pousser(Depart, Arrivee, n).
+oriente_pour_pousser(Depart, Arrivee, Orientation) :- Tmp is Arrivee - Depart,
+													bonne_orientation(Tmp, Orientation),!.
+													
+bonne_orientation(10, n):- ! .
+bonne_orientation(-10, s) :- !.
+bonne_orientation(1, w) :- !.
+bonne_orientation(-1, e) :- !.
 					    
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -407,218 +568,3 @@ poussee_possible(Case, Orientation, Plateau, Historique):-
 % 	--> 1) (F > 0) AND (F >= M)
 test_force_masse(Force, Masse) :- 	Force > 0,
 					Force >= Masse.
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Coup possible
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-		
-%coup_possible(Plateau, (Depart,Arrivee,Orientation), Historique) :- verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique),!.
-
-%coups_possibles(Plateau, ListeCoups) :- setof(X, coup_possible(Plateau, X, Historique), ListeCoups).
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% GESTION DE LA PARTIE DE SIAM
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%Déroulement d'une partie:
-% -Création dynamique du plateau de jeu initial
-% -Tour de jeu (avec réallocation dynamique du plateau de jeu)
-% -Test fin de partie? Si non, on retourne au point de choix créé par repeat, si oui, partie finie.
-
-partie_SIAM :-
-			retractall(plateau_courant(_)),
-			asserta(plateau_courant([[(42,n),(0,0),(0,0),(0,0),(0,0)],[(32,n),(0,0),(0,0),(0,0),(0,0)],[52,33,34],e])),
-			repeat,
-			plateau_courant(Plateau),
-			tour(Plateau, Historique, Coup, Fin), nl,
-			fin_partie(Plateau, Historique, Coup, Fin),
-			write('La partie est finie.'),!.
-
-afficher_joueur_courant([_,_,_,e]) :- write('Au tour des elephants de jouer.'), nl.
-afficher_joueur_courant([_,_,_,r]) :- write('Au tour des rhinoceros de jouer.'), nl.
-				
-%Déroulement d'un tour de jeu :
-% - Saisie du coup (vérification du joueur, des cases de départ et d'arrivée, si poussée possible.
-% - Réallocation du plateau de jeu dynamiquement
-% - Affichage du vainqueur si montagne hors du jeu.
-					
-tour(Plateau, Historique, Coup, Fin) :- 
-						afficher_plateau(Plateau),
-						write('#####################################'), nl,
-						write('Tour de jeu'), nl,
-						afficher_joueur_courant(Plateau),
-						write('#####################################'), nl,
-						saisir_coup(Plateau, Coup, Historique),
-						jouer_coup(Plateau, Coup, Historique, Fin).					
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-saisir_coup(Plateau, (Depart, Arrivee, Orientation), Historique) :-	
-							repeat,
-							write('Choisissez votre pion'), nl,
-							read_term(Depart, [syntax_error(fail)]),
-							integer(Depart),
-							verifier_depart(Depart, Plateau), !,
-							repeat,
-							write('Choisissez la case d\'arrivee'), nl,
-							read_term(Arrivee, [syntax_error(fail)]),
-							integer(Arrivee),
-							write('Choisissez l\'orientation de votre pion'), nl,
-							read_term(Orientation, [syntax_error(fail)]),
-							atom(Orientation),
-							\+ number(Orientation),
-							verifier_arrivee(Depart, Arrivee, Orientation, Plateau, Historique), !.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-jouer_coup(Plateau, Coup, Histo, Fin) :- 	
-				reverse(Histo, ReversedHisto),
-				modifier_plateau(Plateau, Coup, TmpPlateau, ReversedHisto),
-				change_joueur(TmpPlateau, NouveauPlateau),
-				retractall(plateau_courant(_)),
-				asserta(plateau_courant(NouveauPlateau)),
-				tester_fin(Fin, NouveauPlateau).
-
-change_joueur([E,R,M,e], [E,R,M,r]).
-change_joueur([E,R,M,r], [E,R,M,e]).
-				
-%Historique vide = pas de poussee
-%Si joueur = e, on bouge un éléphant, et le joueur suivant jouera les rhinocéros, sinon inverse
-modifier_plateau([E,R,M,e], (Depart,Arrivee,Orientation), [NewE,R,M,e], []) :- 
-	change_p(E, (Depart,Arrivee,Orientation), NewE),!.
-modifier_plateau([E,R,M,r], (Depart,Arrivee,Orientation), [E,NewR,M,r], []) :- 
-	change_p(R, (Depart,Arrivee,Orientation), NewR),!.
-
-%Historique non vide = poussee, changements multiples de pions
-modifier_plateau(Plateau, (Depart,Arrivee,Orientation), NouveauPlateau, [T|Q]) :-
-	modifier_plateau(Plateau, (Depart,Arrivee,Orientation), TmpPlateau, Q),
-	change_pion(TmpPlateau, T, Orientation, NouveauPlateau).
-															
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                  Modification des pions               %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-change_p([],_,[]) :- write('Erreur : impossible de modifier la piece, non presente dans la base.'), nl.
-change_p([(Depart,_)|Q], (Depart, Arrivee, Orientation), [(Arrivee,Orientation)|Q]).
-change_p([T|Q], Coup, [T|NewQ]) :- change_p(Q, Coup, NewQ). 
-								
-%Quand historique vide = plus de modifications à apporter
-change_pion([E,R,M,J], (m,Case), Orientation, [E,R,NewM,J]) :- change_montagne(M, Case, Orientation, NewM).
-change_pion([E,R,M,J], (e,Case,O), Orientation, [NewE,R,M,J]) :- change_animal(E, Case, Orientation, NewE). 
-change_pion([E,R,M,J], (r,Case,O), Orientation, [E,NewR,M,J]) :- change_animal(R, Case, Orientation, NewR). 
-
-change_montagne([Case|Q], Case, n, [NewCase|Q]) :- NewCase is Case + 10,
-												   case_valide(NewCase),!.
-change_montagne([Case|Q], Case, n, [0|Q]).
-change_montagne([Case|Q], Case, e, [NewCase|Q]) :- NewCase is Case + 1,
-													case_valide(NewCase),!.
-change_montagne([Case|Q], Case, e, [0|Q]).
-change_montagne([Case|Q], Case, s, [NewCase|Q]) :- NewCase is Case - 10,
-													case_valide(NewCase),!.
-change_montagne([Case|Q], Case, s, [0|Q]).
-change_montagne([Case|Q], Case, w, [NewCase|Q]) :- NewCase is Case - 1,
-													case_valide(NewCase),!.
-change_montagne([Case|Q], Case, w, [0|Q]).
-change_montagne([T|Q], Case, [T|NewQ], O) :- change_montagne(Q, Case, NewQ, O).
-
-change_animal([(Case,Orientation)|Q], Case, n, [(NewCase,Orientation)|Q]) :- NewCase is Case + 10,
-																			case_valide(NewCase),!.
-change_animal([(Case,Orientation)|Q], Case, n, [(0,0)|Q]).
-change_animal([(Case,Orientation)|Q], Case, e, [(NewCase,Orientation)|Q]) :- NewCase is Case + 1,
-																			case_valide(NewCase),!.
-change_animal([(Case,Orientation)|Q], Case, e, [(0,0)|Q]).
-change_animal([(Case,Orientation)|Q], Case, s, [(NewCase,Orientation)|Q]) :- NewCase is Case - 10,
-																			case_valide(NewCase),!.
-change_animal([(Case,Orientation)|Q], Case, s, [(0,0)|Q]).
-change_animal([(Case,Orientation)|Q], Case, w, [(NewCase,Orientation)|Q]) :- NewCase is Case - 1,
-																			case_valide(NewCase),!.
-change_animal([(Case,Orientation)|Q], Case, w, [(0,0)|Q]).
-change_animal([T|Q], Case, [T|NewQ], O) :- change_animal(Q, Case, O, NewQ).
-							
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Fin de partie : vérification si une montagne est hors-limites, détermination du vainqueur si oui.					
-					
-fin_partie([E,R,M,J], H, C, 0) :- afficher_gagnant(H, [E,R,M,J], C),!.
-
-tester_fin(0, [E,R,M,J]) :- montagne_out(M),!.
-tester_fin(1, [E,R,M,J]). 
-
-montagne_out([0,_,_]).
-montagne_out([_,0,_]).
-montagne_out([_,_,0]).
-					
-afficher_gagnant(Histo, Plateau, (_,_,Orientation)) :- reverse(Histo, ReversedHisto),
-							trim_historique(ReversedHisto, NewHisto),
-							test_orientation(NewHisto, Orientation, Plateau, e),!,
-							write('Les elephants ont gagne!'), nl.
-													
-afficher_gagnant(_, _, _) :- write('Les rhinoceros ont gagne!'), nl.
-
-trim_historique([], []) :- write('Erreur : impossible de se retrouver avec un historique sans montagne dans le cas ou fin de partie'), nl.
-trim_historique([(m,_)|Q], Q) :- !.
-trim_historique([_|Q], NewH) :- trim_historique(Q, NewH).
-
-%Si historique vide : pion qui a initié la poussée a gagné
-%Comme plateau déjà modifié (joueur différent de celui qui a joué), on renvoie l'autre joueur que le joueur courant
-test_orientation([], _, Plateau, e) :- afficher_joueur(Plateau, e),!.
-test_orientation([], _, Plateau, r) :- afficher_joueur(Plateau, r),!.
-
-test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- orientation_identique(O, Case, Plateau),!.
-test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- test_orientation(Q, O, Plateau, Pion).
-						
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                      TIPS                                         %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%						
-						
-						
-%Structure d'un coup : (Depart, Arrivee, Orientation)
-%Ex (0,11,n)
-
-%dynamic(plateau_courant/1).
-%retract(plateau_courant).
-%asserta(plateau_courant(P)).	
-
-%setof
-
-%bagof(X,Y^,pere(X,Y),L). %Orientation se fiche des Y
-
-%coups_possibles(Plateau, Case). 
-
-%Vérifier la syntaxe du coup
-%repeat laisse un point de choix donc si false il backtrack sur le point laissé
-%par le repeat
-%Il faut placer un cut après le test vrai
-%saisir_coup.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Ne pas oublier pousser une piece hors du plateau il revient
-%dans la main du joueur
-
-%Orientation peut pousser en entrant
-
-%En cas de victoire c'est le joueur qui possède le pion qui a poussé le dernier
-
-%Représenter la file de pousser par une liste
-% --> Représenter sous forme d'une liste Force Masse
-% --> F > 0
-% --> F >= M
-%Compter F,M dans le sens de la liste
-
-% exemples
-
-%  --> <--
-%F  1   0 Stop
-%M  0   0
-
-%  --> M M -->
-%F  1  1 1 Stop
-%M  0  1 2

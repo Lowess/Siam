@@ -35,13 +35,6 @@
 % différents plateaux de siam possible en cours de partie
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-plateau_test([
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[0,0,0],
-		e	
-	]).
-
 plateau_test(
 	[
 		[(11,n),(44,s),(13,w),(14,e),(15,n)],
@@ -50,21 +43,21 @@ plateau_test(
 		e
 	]).
 
-plateau_test(
-	[
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[(0,0),(0,0),(0,0),(0,0),(0,0)],
-		[32,33,34],
-		e
-	]).
+%plateau_test(
+%	[
+%		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+%		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+%		[32,33,34],
+%		e
+%	]).
 
-plateau_test(
-	[
-		[(11,n),(12,s),(13,w),(14,e),(15,n)],
-		[(51,n),(52,s),(53,w),(54,e),(55,n)],
-		[32,33,34],
-		r
-	]).
+%plateau_test(
+%	[
+%		[(11,n),(12,s),(13,w),(14,e),(15,n)],
+%		[(51,n),(52,s),(53,w),(54,e),(55,n)],
+%		[32,33,34],
+%		r
+%	]).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -90,9 +83,6 @@ affiche_lignes(0, _, _):- 	!,
 				nl,
 				write('         1       2       3       4       5    '),
 				nl.
-				
-				
-
 
 affiche_lignes(NbLignes, NbCases, P):-	TmpLignes is NbLignes - 1,
 					write('     |-------|-------|-------|-------|-------|'), 
@@ -119,7 +109,6 @@ montagne([_,_,M|_], Case) :- 	member(Case,M).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Récupérer le contenu d'une case (si non vide)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 get_pion(Plateau, Case, (e, Pion)) :- elephant(Plateau, Case), !,
 								get_elephant(Plateau, Case, Pion).
 get_pion(Plateau, Case, (r, Pion)) :- rhinoceros(Plateau, Case), !,
@@ -133,7 +122,6 @@ get_rhinoceros([_,R|_], Case, Pion) :- get_p(R, Case, Pion).
 get_p([],_, Pion) :- write('Erreur, aucun pion ne correspond a cette case.'),nl.
 get_p([(Case,Orientation)|Q], Case, (Case,Orientation)) :- !.
 get_p([_|Q], Case, Pion) :- get_p(Q, Case, Pion).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Afficher contenu 
 %Affiche le contenu d'une case C d'un plateau P
