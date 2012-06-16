@@ -192,7 +192,15 @@ verifier_depart(Depart,Plateau) :-	case_valide(Depart),
 					rhinoceros(Plateau,Depart), 
 					!.
 
-verifier_depart(_,_) :-	write('Vous n\'avez pas le droit de manipuler ce pion.'), nl, fail.
+verifier_depart(_,_) :-	write('Pion impossible a manipuler:'),
+			nl,
+			write('1 -- Il ne vous reste plus de pions en dehors du plateau...'),
+			nl,
+			write('2 -- Vous essayez de manipuler les pions de votre adversaire...'),
+			nl,
+			write('3 -- Il n\'y a pas de pion sur cette case...'),
+			nl,
+			fail.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -229,11 +237,15 @@ verifier_deplacement_plateau(10).
 %Ne peut laisser son pion hors du jeu car obligation de changer l'orientation
 %de la pièce si celle-ci ne change pas de case
 verifier_arrivee(0,0,_,_,[]) :-	write('Vous etes obliges d\'effectuer un deplacement'),
-								fail.
+				nl,!,fail.
 								
-verifier_arrivee(Depart,Depart,Orientation,Plateau,[]) :- get_pion(Plateau, Depart, (_,_,O)), 
-															\+ O = Orientation.
-
+%Changement d'orientation sans déplacements
+verifier_arrivee(Depart,Depart,Orientation,[E,R,M,J],_) :- 	write('Verification coup sur place'), 
+								nl,
+								get_pion([E,R,M,J], Depart, (J, (_,O))),
+								\+ Orientation = O,						
+								!.
+								
 %Entrée sur plateau sur une case vide
 verifier_arrivee(0,Arrivee,Orientation,Plateau,[]) :-	
 							case_valide(Arrivee),
@@ -254,6 +266,12 @@ verifier_arrivee(0, Arrivee, Orientation, Plateau, Historique) :-
 							poussee_possible(Arrivee,Orientation,Plateau, Historique),
 							!.							
 
+%Vérifier déplacement avec une sortie
+verifier_arrivee(Depart,0,Orientation,Plateau,[]) :-	
+							\+ Depart = 0,
+							write('Verification case arrivee pour Deplacement sur case case sortie'), nl.
+							
+
 %Déplacement sur une case vide
 verifier_arrivee(Depart,Arrivee,Orientation,Plateau,[]) :-	
 							\+ Depart = 0,
@@ -271,7 +289,8 @@ verifier_arrivee(Depart,Arrivee,Orientation,Plateau, Historique) :-
 							%Test la validité du coup
 							Tmp is Depart - Arrivee,
 							verifier_deplacement_plateau(Tmp),
-							oriente_pour_pousser(Depart,Arrivee,Orientation),
+							%vérifie que l'on pousse avec l'avant du pion
+							oriente_pour_pousser(Depart, Arrivee, Orientation),
 							%verifier que la poussée est valide
 							poussee_possible(Arrivee,Orientation,Plateau,Historique),
 							!.
@@ -537,7 +556,7 @@ oriente_pour_pousser(0, 45, w):- !.			%	|				|
 											%	|				|
 oriente_pour_pousser(0, 52, s):- !.			%	|				|
 oriente_pour_pousser(0, 53, s):- !. 		% (4)		
-											%	|				|
+												%	|				|
 oriente_pour_pousser(0, 54, s):- !.			%	---------------------------------
 											%	(C1)		(1)		(C2)
 
@@ -547,8 +566,7 @@ oriente_pour_pousser(Depart, Arrivee, Orientation) :- Tmp is Arrivee - Depart,
 bonne_orientation(10, n):- ! .
 bonne_orientation(-10, s) :- !.
 bonne_orientation(1, w) :- !.
-bonne_orientation(-1, e) :- !.
-					    
+bonne_orientation(-1, e) :- !.					    
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Poussée Possible

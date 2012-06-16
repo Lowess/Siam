@@ -216,7 +216,6 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 				afficher_joueur([E,R,M,J],Jou), %Affiche le nom du joueur
 				write('Nom du joueur: '),
 				write(Jou), nl,
-	
 				nombre_pieces_restantes([E,R,M,J],NbEle,NbRhi), %Affiche le nombre d'éléphants restants
 				write('Nombre d\'elephants a faire entrer en jeu: '),  
 				write(NbEle), nl,
