@@ -87,8 +87,16 @@ verifier_deplacement_plateau(10).
 %de la pièce si celle-ci ne change pas de case
 verifier_arrivee(0,0,_,_,[]) :-	write('Vous etes obliges d\'effectuer un deplacement'),
 				nl,
+				!,
 				fail.
+								
 
+%Changement d'orientation sans déplacements
+verifier_arrivee(Depart,Depart,Orientation,[E,R,M,J],_) :- 	write('Verification coup sur place'), 
+								nl,
+								get_pion([E,R,M,J], Depart, (J, (_,O))),
+								\+ Orientation = O,						
+								!.
 %Entrée sur plateau sur une case vide
 verifier_arrivee(0,Arrivee,Orientation,Plateau,[]) :-	
 							write('Verification case arrivee pour Entree sur case vide'), nl,
