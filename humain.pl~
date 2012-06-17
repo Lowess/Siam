@@ -560,10 +560,10 @@ oriente_pour_pousser(0, 53, s):- !. 		% (4)
 oriente_pour_pousser(0, 54, s):- !.			%	---------------------------------
 											%	(C1)		(1)		(C2)
 
-oriente_pour_pousser(Depart, Arrivee, Orientation) :- Tmp is Arrivee - Depart,
-													bonne_orientation(Tmp, Orientation),!.
+oriente_pour_pousser(Depart, Arrivee, Orientation) :- 	Tmp is Arrivee - Depart,
+							bonne_orientation(Tmp, Orientation),!.
 													
-bonne_orientation(10, n):- ! .
+bonne_orientation(10, n):- !.
 bonne_orientation(-10, s) :- !.
 bonne_orientation(1, w) :- !.
 bonne_orientation(-1, e) :- !.					    
@@ -754,15 +754,6 @@ afficher_gagnant(_, _, _) :- write('Les rhinoceros ont gagne!').
 trim_historique([], []) :- write('Erreur : impossible de se retrouver avec un historique sans montagne dans le cas ou fin de partie').
 trim_historique([(m,_)|Q], Q) :- !.
 trim_historique([_|Q], NewH) :- trim_historique(Q, NewH).
-
-%Si historique vide : pion qui a initié la poussée a gagné
-%Comme plateau déjà modifié (joueur différent de celui qui a joué), on renvoie l'autre joueur que le joueur courant
-%test_orientation([], _, Plateau, r) :- afficher_joueur(Plateau, e).
-%test_orientation([], _, Plateau, e) :- afficher_joueur(Plateau, r).
-
-%test_orientation([(Pion,Case,Orientation)|[]], O, Plateau, Pion) :- orientation_identique(Orientation, Case, Plateau), !.
-%test_orientation((_,Case,Orientation), O, Plateau, Pion).
-%test_orientation([(_,Case,Orientation)|Q], O, Plateau, Pion) :- 	test_orientation(Q, O, Plateau).
 
 test_orientation([], _, _, _).
 
