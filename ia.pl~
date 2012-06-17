@@ -18,16 +18,37 @@ flatten(Hd, FlatHeadTail, List),
 flatten(Tl, Tail, FlatHeadTail).
 flatten(Atom, Tl, [Atom|Tl]).
 
+partie_SIAM_IA :-
+			retractall(plateau_courant(_)),
+			asserta(plateau_courant([[(0,0),(0,0),(0,0),(0,0),(0,0)],[(0,0),(0,0),(0,0),(0,0),(0,0)],[32,33,34],e])),
+			repeat,
+			plateau_courant(Plateau),
+			tour_IA(Plateau, Historique, Coup, Fin), nl,
+			fin_partie(Plateau, Historique, Coup, Fin),
+			write('La partie est finie.'),!.
+			
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+tour_IA(Plateau, Historique, Coup, Fin) :- 
+						afficher_plateau(Plateau), nl,
+						write('#####################################'), nl,
+						write('            Tour de jeu              '), nl,
+						write('#####################################'), nl,
+						afficher_joueur_courant(Plateau),
+						write('#####################################'), nl,
+						coups_possibles_joueur(Plateau, ListeCoups),
+						write('Prendre meilleur coup'), nl,
+						meilleur_coup(Plateau, ListeCoups, (Depart,Arrivee,Orientation)),
+						verifier_arrivee(Depart,Arrivee,Orientation,Plateau,Historique),
+						jouer_coup(Plateau, Coup, Historique, Fin).	
 
 casesExterieures([11,12,13,14,15,21,31,41,51,52,53,54,55,45,35,25]).
 
-coups_possibles_joueur([E,R,M,e], ListeCoups) :- 	coups_possibles_pion(E, TmpCoups, [E,R,M,e]), 
-							flatten(TmpCoups,ListeCoups).
-coups_possibles_joueur([E,R,M,r], ListeCoups) :- 	coups_possibles_pion(R, TmpCoups, [E,R,M,r]), 
-							flatten(TmpCoups,ListeCoups).
+coups_possibles_joueur([E,R,M,e], ListeCoups) :- write('Coups possibles ele'), nl, coups_possibles_pion(E, TmpCoups, [E,R,M,e]), flatten(TmpCoups, 													ListeCoups), write('Fin coups'), nl, write(ListeCoups), nl.
+coups_possibles_joueur([E,R,M,r], ListeCoups) :- write('Coups possibles rhi'), nl, coups_possibles_pion(R, TmpCoups, [E,R,M,r]), flatten(TmpCoups, 													ListeCoups).
 
 coups_possibles_pion([],[], _).
-coups_possibles_pion([E1|E], [NewCoups|ListeCoups], P) :- coups_possibles_pion(E, ListeCoups, P),
+coups_possibles_pion([E1|E], [NewCoups|ListeCoups], P) :- write('Coups pion'), nl,														coups_possibles_pion(E, ListeCoups, P),
 													setof(Coups, getCoupPossible(E1, Coups, P), TmpCoups), flatten(TmpCoups,NewCoups).
 
 %Coups possibles : Pion reste sur place mais change d'orientation
@@ -72,7 +93,7 @@ getCoupPossible((Case,O), [(Case,Arrivee,w)], P) :- Arrivee is Case - 1,
 												\+ verifier_case_vide(Arrivee, P),
 												verifier_arrivee(Case,Arrivee,w,P,H).
 								
-produireListeEntree([], [], _).
+produireListeEntree([], [], _) :- !.
 produireListeEntree([T|Q], [(0,T,n),(0,T,e),(0,T,s),(0,T,w)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), verifier_case_vide(T, P).
 																					
 %Coups possibles lors de l'entree lorsque case non vide.
@@ -126,8 +147,8 @@ calculer_etat([E,R,M,r], Total) :- total_montagnes_placees(M, NB),
 							total_pro_joueur(E, M, NB_CON),
 							Tmp is NB + NB_PRO,
 							Total is Tmp - NB_CON.
-							
-total_montagnes_placees([], 0).
+													
+total_montagnes_placees([], 0) :- !.
 total_montagnes_placees([0|M], Nb) :- total_montagnes_placees(M, TmpNb),
 										Nb is TmpNb + 1000.
 total_montagnes_placees([33|M], Nb) :- total_montagnes_placees(M, TmpNb),
@@ -139,7 +160,7 @@ total_montagnes_placees([M1|M], Nb) :- total_montagnes_placees(M, TmpNb),
 total_montagnes_placees([M1|M], Nb) :- total_montagnes_placees(M, TmpNb),
 										Nb is TmpNb + 250.
 										
-total_pro_joueur([], _, 0).										
+total_pro_joueur([], _, 0) :- !.										
 total_pro_joueur([Pion1|Pions], [M1,M2,M3], Nb) :- total_pro_joueur(Pions, [M1,M2,M3], Tmp),
 													calculer_ecart(Pion1, M1, Ecart1),
 													NbTmp is Ecart1 + Tmp,
