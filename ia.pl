@@ -127,7 +127,8 @@ total_pro_joueur([Pion1|Pions], [M1,M2,M3], Nb) :- total_pro_joueur(Pions, [M1,M
 													NbTmp2 is Ecart2 + NbTmp,
 													calculer_ecart(Pion1, M1, Ecart3),
 													Nb is Ecart3 + NbTmp2.
-													
+
+calculer_ecart((0,_), Montagne, 0).													
 calculer_ecart((Case,Orientation), Montagne, Ecart) :- Tmp is Montagne - Case,
 														Tmp > 0,
 														Div is Tmp / 10,
