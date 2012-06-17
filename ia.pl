@@ -59,16 +59,20 @@ produireListeEntree([T|Q], [(0,T,n),(0,T,e),(0,T,s),(0,T,w)|ListeDeplacements], 
 %Coups possibles lors de l'entree lorsque case non vide.
 
 %Coins : orientations particulieres
-produireListeEntree([11|Q], [(0,11,n),(0,11,e)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P).
-produireListeEntree([51|Q], [(0,51,e),(0,51,s)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P).
-produireListeEntree([15|Q], [(0,15,n),(0,15,w)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P).
-produireListeEntree([55|Q], [(0,55,w),(0,55,s)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P).
+produireListeEntree([11|Q], [(0,11,n)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(11, P), verifier_arrivee(0,11,n,P,H).
+produireListeEntree([11|Q], [(0,11,e)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(11, P), verifier_arrivee(0,11,e,P,H).
+produireListeEntree([51|Q], [(0,51,e)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(51, P), verifier_arrivee(0,51,e,P,H).
+produireListeEntree([51|Q], [(0,51,s)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(51, P), verifier_arrivee(0,51,s,P,H).
+produireListeEntree([15|Q], [(0,15,n)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(15, P), verifier_arrivee(0,15,n,P,H).
+produireListeEntree([15|Q], [(0,15,w)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(15, P), verifier_arrivee(0,15,w,P,H).
+produireListeEntree([55|Q], [(0,55,w)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(55, P), verifier_arrivee(0,55,w,P,H).
+produireListeEntree([55|Q], [(0,55,s)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(55, P), verifier_arrivee(0,55,s,P,H).
 
 %Bords : une seule orientation possible
-produireListeEntree([T|Q], [(0,T,e)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), Case is T mod 5, Case = 1.
-produireListeEntree([T|Q], [(0,T,w)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), Case is T mod 5, Case = 0.
-produireListeEntree([T|Q], [(0,T,n)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), Case is T // 10, Case = 1.
-produireListeEntree([T|Q], [(0,T,s)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), Case is T // 10, Case = 5.
+produireListeEntree([T|Q], [(0,T,e)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), Case is T mod 5, Case = 1, \+ verifier_case_vide(T, P), verifier_arrivee(0,T,e,P,H).
+produireListeEntree([T|Q], [(0,T,w)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), Case is T mod 5, Case = 0, \+ verifier_case_vide(T, P), verifier_arrivee(0,T,w,P,H).
+produireListeEntree([T|Q], [(0,T,n)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), Case is T // 10, Case = 1, \+ verifier_case_vide(T, P), verifier_arrivee(0,T,n,P,H).
+produireListeEntree([T|Q], [(0,T,s)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), Case is T // 10, Case = 5, \+ verifier_case_vide(T, P), verifier_arrivee(0,T,s,P,H).
 														
 getAllCoups(Case, Arrivee, [(Case,Arrivee,n),(Case,Arrivee,e),(Case,Arrivee,s),(Case,Arrivee,w)]) :- case_valide(Arrivee).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
