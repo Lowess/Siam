@@ -102,18 +102,19 @@ meilleur_coup(Plateau, ListeCoups, Coup) :- 	calculer_etat(Plateau, Total),
 						comparer_etat(Plateau, ListeCoups, Total, Coup).
 										
 comparer_etat(_, [], Max, Coup) :- !.
-comparer_etat(Plateau, [(D,A,O)|Coups], Max, (D,A,O)) :- comparer_etat(Plateau, Coups, Max, Coup),
-													verifier_arrivee(D,A,O,Plateau, Histo),
-													reverse(Histo, ReversedHisto),
-													modifier_plateau(Plateau, (D,A,O), TmpPlateau, ReversedHisto),
-													calculer_etat(TmpPlateau, TmpMax),
-													TmpMax > Max.
-comparer_etat(Plateau, [(D,A,O)|Coups], Max, Coup) :- comparer_etat(Plateau, Coups, Max, Coup),
-													verifier_arrivee(D,A,O,Plateau, Histo),
-													reverse(Histo, ReversedHisto),
-													modifier_plateau(Plateau, (D,A,O), TmpPlateau, ReversedHisto),
-													calculer_etat(TmpPlateau, TmpMax),
-													TmpMax < Max.
+comparer_etat(Plateau, [(D,A,O)|Coups], Max, (D,A,O)) :- 	comparer_etat(Plateau, Coups, Max, Coup),
+								verifier_arrivee(D,A,O,Plateau, Histo),
+								reverse(Histo, ReversedHisto),
+								modifier_plateau(Plateau, (D,A,O), TmpPlateau, ReversedHisto),
+								calculer_etat(TmpPlateau, TmpMax),
+								TmpMax > Max.
+
+comparer_etat(Plateau, [(D,A,O)|Coups], Max, Coup) :- 	comparer_etat(Plateau, Coups, Max, Coup),
+							verifier_arrivee(D,A,O,Plateau, Histo),
+							reverse(Histo, ReversedHisto),
+							modifier_plateau(Plateau, (D,A,O), TmpPlateau, ReversedHisto),
+							calculer_etat(TmpPlateau, TmpMax),
+							TmpMax < Max.
 											
 calculer_etat([E,R,M,e], Total) :- total_montagnes_placees(M, NB),
 							total_pro_joueur(E, M, NB_PRO),
@@ -148,14 +149,15 @@ total_pro_joueur([Pion1|Pions], [M1,M2,M3], Nb) :- total_pro_joueur(Pions, [M1,M
 													Nb is Ecart3 + NbTmp2.
 
 calculer_ecart((0,_), Montagne, 0).													
-calculer_ecart((Case,Orientation), Montagne, Ecart) :- Tmp is Montagne - Case,
-														Tmp > 0,
-														Div is Tmp / 10,
-														TmpEcart is 1 / Div,
-														Ecart is TmpEcart * 100.
-calculer_ecart((Case,Orientation), Montagne, Ecart) :- Tmp is Montagne - Case,
-														Tmp2 is Tmp * -1,
-														Div is Tmp2 / 10,
-														TmpEcart is 1 / Div,
-														Ecart is TmpEcart * 100.
+calculer_ecart((Case,Orientation), Montagne, Ecart) :- 	Tmp is Montagne - Case,
+							Tmp > 0,
+							Div is Tmp / 10,
+							TmpEcart is 1 / Div,
+							Ecart is TmpEcart * 100.
+
+calculer_ecart((Case,Orientation), Montagne, Ecart) :- 	Tmp is Montagne - Case,
+							Tmp2 is Tmp * -1,
+							Div is Tmp2 / 10,
+							TmpEcart is 1 / Div,
+							Ecart is TmpEcart * 100.
 

@@ -573,14 +573,8 @@ bonne_orientation(-1, e) :- !.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 poussee_possible(Case, Orientation, Plateau, Historique):-
 	%On test si notre piece que l'on manipule est dans le sens opposée à la pièce de devant
-	%orientation_opposee(Orientation, Case, Plateau),
 	genere_liste_force_masse(Case, Orientation, Plateau, (1,0), Historique),
 	!.
-
-%poussee_possible(Case, Orientation, Plateau, Historique):-
-	%Si notre piece que l'on manipule n'est pas opposée à la notre
-%	genere_liste_force_masse(Case, Orientation, Plateau, (1,0), Historique),
-%	!.
 
 %Conditions d'arrets avec echec de poussée:
 % 	--> 1) (F > 0) AND (F >= M)
