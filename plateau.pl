@@ -42,14 +42,21 @@ plateau_test(
 		[32,33,34],
 		e
 	]).
+%plateau_test(
+%	[
+%		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+%		[(0,0),(0,0),(0,0),(0,0),(0,0)],
+%		[32,33,34],
+%		e
+%	]).
 
-plateau_test(
-	[
-		[(11,n),(12,s),(13,w),(14,e),(15,n)],
-		[(51,n),(52,s),(53,w),(54,e),(55,n)],
-		[32,33,34],
-		r
-	]).
+%plateau_test(
+%	[
+%		[(11,n),(12,s),(13,w),(14,e),(15,n)],
+%		[(51,n),(52,s),(53,w),(54,e),(55,n)],
+%		[32,33,34],
+%		r
+%	]).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,9 +82,6 @@ affiche_lignes(0, _, _):- 	!,
 				nl,
 				write('         1       2       3       4       5    '),
 				nl.
-				
-				
-
 
 affiche_lignes(NbLignes, NbCases, P):-	TmpLignes is NbLignes - 1,
 					write('     |-------|-------|-------|-------|-------|'), 
@@ -104,7 +108,6 @@ montagne([_,_,M|_], Case) :- 	member(Case,M).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Récupérer le contenu d'une case (si non vide)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 get_pion(Plateau, Case, (e, Pion)) :- elephant(Plateau, Case), !,
 								get_elephant(Plateau, Case, Pion).
 get_pion(Plateau, Case, (r, Pion)) :- rhinoceros(Plateau, Case), !,
@@ -118,7 +121,6 @@ get_rhinoceros([_,R|_], Case, Pion) :- get_p(R, Case, Pion).
 get_p([],_, Pion) :- write('Erreur, aucun pion ne correspond a cette case.'),nl.
 get_p([(Case,Orientation)|Q], Case, (Case,Orientation)) :- !.
 get_p([_|Q], Case, Pion) :- get_p(Q, Case, Pion).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%Afficher contenu 
 %Affiche le contenu d'une case C d'un plateau P
@@ -193,11 +195,8 @@ afficher_joueur([_,_,_,J], J).
 %le nombre de pièce hors plateau
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-nombre_pieces_restantes([E,R,_,J], Nb) :- 	J=e,
-						nombre_pieces_restantes2(E,Nb).
-
-nombre_pieces_restantes([E,R,_,J], Nb) :- 	J=r,
-						nombre_pieces_restantes2(R,Nb).
+nombre_pieces_restantes([E,R,_,_], NbEl, NbRhi) :- nombre_pieces_restantes2(E,NbEl),
+										nombre_pieces_restantes2(R,NbRhi).
 
 nombre_pieces_restantes2([],0):- !.
 nombre_pieces_restantes2([(0,0)|Q],Nb):- 	nombre_pieces_restantes2(Q,Tmp),
@@ -216,11 +215,8 @@ afficher_plateau([E,R,M,J]) :- 	affiche_lignes(5,5, [E,R,M,J]), %Affiche le plat
 				afficher_joueur([E,R,M,J],Jou), %Affiche le nom du joueur
 				write('Nom du joueur: '),
 				write(Jou), nl,
-	
-				nombre_pieces_restantes([E,R,M,e],NbEle), %Affiche le nombre d'éléphants restants
+				nombre_pieces_restantes([E,R,M,J],NbEle,NbRhi), %Affiche le nombre d'éléphants restants
 				write('Nombre d\'elephants a faire entrer en jeu: '),  
 				write(NbEle), nl,
-
-				nombre_pieces_restantes([E,R,M,r],NbRhi), %Affiche le nombre de rhinocéros restants
 				write('Nombre de rhinoceros a faire entrer en jeu: '),
 				write(NbRhi), nl.
