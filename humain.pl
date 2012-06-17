@@ -98,8 +98,7 @@ verifier_arrivee(Depart,Depart,Orientation,[E,R,M,J],_) :- 	write('Verification 
 								\+ Orientation = O,						
 								!.
 %Entrée sur plateau sur une case vide
-verifier_arrivee(0,Arrivee,Orientation,Plateau,[]) :-	
-							write('Verification case arrivee pour Entree sur case vide'), nl,
+verifier_arrivee(0,Arrivee,Orientation,Plateau,[]) :-	write('Verification case arrivee pour Entree sur case vide'), nl,
 							case_valide(Arrivee),
 							verifier_case_vide(Arrivee,Plateau),!,
 							%test maintenant la validité du coup
@@ -482,12 +481,8 @@ test_force_masse(Force, Masse) :- 	Force > 0,
 partie_SIAM :-
 			retractall(plateau_courant(_)),
 			asserta(plateau_courant([[(0,0),(0,0),(0,0),(0,0),(0,0)],[(0,0),(0,0),(0,0),(0,0),(0,0)],[32,33,34],e])),
-			%asserta(plateau_courant([[(11,n),(12,s),(13,w),(14,e),(15,n)],[(51,n),(52,s),(53,w),(54,e),(55,n)],[32,33,34],e])),
+			%asserta(plateau_courant([[(22,w),(12,s),(13,w),(24,w),(15,n)],[(23,w),(52,s),(53,w),(54,e),(55,n)],[21,33,34],e])),
 			%asserta(plateau_courant([[(22,n),(12,n),(13,w),(14,e),(15,n)],[(51,n),(32,s),(53,w),(54,e),(55,n)],[35,33,34],e])),
-
-%change_pion([[(22,n),(22,n),(13,w),(14,e),(15,n)],[(51,n),(32,n),(53,w),(54,e),(55,n)],[35,33,34],r],n,_10531,(r,32,n))
-%change_pion([[(22,n),(22,n),(13,w),(14,e),(15,n)],[(51,n),(32,w),(53,w),(54,e),(55,n)],[35,33,34],r],n,_10394,(r,32,w))
-
 			repeat,
 			plateau_courant(P),
 			tour(P, H, C),
@@ -634,11 +629,20 @@ trim_historique([_|Q], NewH) :- trim_historique(Q, NewH).
 
 %Si historique vide : pion qui a initié la poussée a gagné
 %Comme plateau déjà modifié (joueur différent de celui qui a joué), on renvoie l'autre joueur que le joueur courant
-test_orientation([], _, Plateau, r) :- afficher_joueur(Plateau, e).
-test_orientation([], _, Plateau, e) :- afficher_joueur(Plateau, r).
+%test_orientation([], _, Plateau, r) :- afficher_joueur(Plateau, e).
+%test_orientation([], _, Plateau, e) :- afficher_joueur(Plateau, r).
 
-test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- orientation_identique(O, Case, Plateau),!.
-test_orientation([(Pion,Case,_)|Q], O, Plateau, Pion) :- test_orientation(Q, O, Plateau).
+%test_orientation([(Pion,Case,Orientation)|[]], O, Plateau, Pion) :- orientation_identique(Orientation, Case, Plateau), !.
+%test_orientation((_,Case,Orientation), O, Plateau, Pion).
+%test_orientation([(_,Case,Orientation)|Q], O, Plateau, Pion) :- 	test_orientation(Q, O, Plateau).
+
+test_orientation([], _, _, _).
+
+test_orientation([(_,Case,Orientation)|Q], O, Plateau, Pion) :-	orientation_identique(Orientation, Case, Plateau),
+								test_orientation(Q, O, Plateau, T).
+
+%									orientation_identique(Orientation, Case, Plateau).
+						
 						
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
