@@ -41,17 +41,17 @@ getCoupPossible((Case,_), L, P) :- Arrivee is Case + 1,
 getCoupPossible((Case,_), L, P) :- Arrivee is Case - 1,
 								verifier_case_vide(Arrivee, P), getAllCoups(Case, Arrivee, L).
 getCoupPossible((Case,O), [(Case,Arrivee,n)], P) :- Arrivee is Case + 10, 
-												\+ verifier_case_vide(Arrivee, P).
-												poussee_possible(Arrivee,n,Plateau,H).
+												\+ verifier_case_vide(Arrivee, P),
+												verifier_arrivee(Case,Arrivee,n,P,H).
 getCoupPossible((Case,O), [(Case,Arrivee,s)], P) :- Arrivee is Case - 10,
-												\+ verifier_case_vide(Arrivee, P).
-												poussee_possible(Arrivee,s,Plateau,H).
+												\+ verifier_case_vide(Arrivee, P),
+												verifier_arrivee(Case,Arrivee,s,P,H).
 getCoupPossible((Case,O), [(Case,Arrivee,e)], P) :- Arrivee is Case + 1,
-												\+ verifier_case_vide(Arrivee, P).
-												poussee_possible(Arrivee,e,Plateau,H).
+												\+ verifier_case_vide(Arrivee, P),
+												verifier_arrivee(Case,Arrivee,e,P,H).
 getCoupPossible((Case,O), [(Case,Arrivee,w)], P) :- Arrivee is Case - 1,
 												\+ verifier_case_vide(Arrivee, P),
-												poussee_possible(Arrivee,w,Plateau,H).
+												verifier_arrivee(Case,Arrivee,w,P,H).
 								
 produireListeEntree([], [], _).
 produireListeEntree([T|Q], [(0,T,n),(0,T,e),(0,T,s),(0,T,w)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), verifier_case_vide(T, P).
@@ -79,11 +79,17 @@ meilleur_coup(Plateau, Coups, Coup) :- calculer_etat(Plateau, Total),
 										comparer_etat(Plateau, ListeCoups, Total, Coup).
 										
 comparer_etat(_, [], Max, Coup) :- !.
-comparer_etat(Plateau, [Coup1|Coups], Max, Coup1) :- comparer_etat(Plateau, Coups, Max, Coup),
-													calculer_etat(Coup1, TmpMax),
+comparer_etat(Plateau, [(D,A,O)|Coups], Max, (D,A,O)) :- comparer_etat(Plateau, Coups, Max, Coup),
+													verifier_arrivee(D,A,O,Plateau, Histo),
+													reverse(Histo, ReversedHisto),
+													modifier_plateau(Plateau, (D,A,O), TmpPlateau, ReversedHisto),
+													calculer_etat(TmpPlateau, TmpMax),
 													TmpMax > Max.
-comparer_etat(Plateau, [Coup1|Coups], Max, Coup) :- comparer_etat(Plateau, Coups, Max, Coup),
-													calculer_etat(Coup1, TmpMax),
+comparer_etat(Plateau, [(D,A,O)|Coups], Max, Coup) :- comparer_etat(Plateau, Coups, Max, Coup),
+													verifier_arrivee(D,A,O,Plateau, Histo),
+													reverse(Histo, ReversedHisto),
+													modifier_plateau(Plateau, (D,A,O), TmpPlateau, ReversedHisto),
+													calculer_etat(TmpPlateau, TmpMax),
 													TmpMax < Max.
 											
 calculer_etat([E,R,M,e], Total) :- total_montagnes_placees(M, NB),
@@ -99,15 +105,15 @@ calculer_etat([E,R,M,r], Total) :- total_montagnes_placees(M, NB),
 							
 total_montagnes_placees([], 0).
 total_montagnes_placees([0|M], Nb) :- total_montagnes_placees(M, TmpNb),
-										Nb is TmpNb + 16.
+										Nb is TmpNb + 1000.
 total_montagnes_placees([33|M], Nb) :- total_montagnes_placees(M, TmpNb),
-										Nb is TmpNb + 2.
+										Nb is TmpNb + 125.
 total_montagnes_placees([M1|M], Nb) :- total_montagnes_placees(M, TmpNb),
 										casesExterieures(C),
 										member(M1,C), !,
-										Nb is TmpNb + 8.
+										Nb is TmpNb + 500.
 total_montagnes_placees([M1|M], Nb) :- total_montagnes_placees(M, TmpNb),
-										Nb is TmpNb + 4.
+										Nb is TmpNb + 250.
 										
 total_pro_joueur([], _, 0).										
 total_pro_joueur([Pion1|Pions], [M1,M2,M3], Nb) :- total_pro_joueur(Pions, [M1,M2,M3], Tmp),
