@@ -2,13 +2,37 @@
 %                          IA.PL                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+partie_SIAM_IA :-
+			retractall(plateau_courant(_)),
+			asserta(plateau_courant([[(0,0),(0,0),(0,0),(0,0),(0,0)],[(0,0),(0,0),(0,0),(0,0),(0,0)],[32,33,34],e])),
+			repeat,
+			plateau_courant(Plateau),
+			tour_IA(Plateau, Historique, Coup, Fin), nl,
+			fin_partie(Plateau, Historique, Coup, Fin),
+			write('La partie est finie.'),!.
+			
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+tour_IA(Plateau, Historique, Coup, Fin) :- 
+						afficher_plateau(Plateau), nl,
+						write('#####################################'), nl,
+						write('            Tour de jeu              '), nl,
+						write('#####################################'), nl,
+						afficher_joueur_courant(Plateau),
+						write('#####################################'), nl,
+						coups_possibles_joueur(Plateau, ListeCoups),
+						write('Prendre meilleur coup'), nl,
+						meilleur_coup(Plateau, ListeCoups, (Depart,Arrivee,Orientation)),
+						verifier_arrivee(Depart,Arrivee,Orientation,Plateau,Historique),
+						jouer_coup(Plateau, Coup, Historique, Fin).	
+
 casesExterieures([11,12,13,14,15,21,31,41,51,52,53,54,55,45,35,25]).
 
-coups_possibles_joueur([E,R,M,e], ListeCoups) :- coups_possibles_pion(E, TmpCoups, [E,R,M,e]), flatten(TmpCoups, 													ListeCoups).
-coups_possibles_joueur([E,R,M,r], ListeCoups) :- coups_possibles_pion(R, TmpCoups, [E,R,M,r]), flatten(TmpCoups, 													ListeCoups).
+coups_possibles_joueur([E,R,M,e], ListeCoups) :- write('Coups possibles ele'), nl, coups_possibles_pion(E, TmpCoups, [E,R,M,e]), flatten(TmpCoups, 													ListeCoups), write('Fin coups'), nl.
+coups_possibles_joueur([E,R,M,r], ListeCoups) :- write('Coups possibles rhi'), nl, coups_possibles_pion(R, TmpCoups, [E,R,M,r]), flatten(TmpCoups, 													ListeCoups).
 
 coups_possibles_pion([],[], _).
-coups_possibles_pion([E1|E], [NewCoups|ListeCoups], P) :- coups_possibles_pion(E, ListeCoups, P),
+coups_possibles_pion([E1|E], [NewCoups|ListeCoups], P) :- write('Coups pion'), nl,														coups_possibles_pion(E, ListeCoups, P),
 													setof(Coups, getCoupPossible(E1, Coups, P), TmpCoups), flatten(TmpCoups,NewCoups).
 
 %Coups possibles : Pion reste sur place mais change d'orientation
@@ -79,7 +103,8 @@ getAllCoups(Case, Arrivee, [(Case,Arrivee,n),(Case,Arrivee,e),(Case,Arrivee,s),(
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-meilleur_coup(Plateau, Coups, Coup) :- calculer_etat(Plateau, Total),
+meilleur_coup(Plateau, Coups, Coup) :- write('Get meilleur coup'), nl,
+										calculer_etat(Plateau, Total),
 										comparer_etat(Plateau, ListeCoups, Total, Coup).
 										
 comparer_etat(_, [], Max, Coup) :- !.
