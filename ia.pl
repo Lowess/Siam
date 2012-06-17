@@ -42,17 +42,16 @@ getCoupPossible((Case,_), L, P) :- Arrivee is Case - 1,
 								verifier_case_vide(Arrivee, P), getAllCoups(Case, Arrivee, L).
 getCoupPossible((Case,O), [(Case,Arrivee,n)], P) :- Arrivee is Case + 10, 
 												\+ verifier_case_vide(Arrivee, P).
-												%poussee_possible(Arrivee,n,Plateau,H).
+												poussee_possible(Arrivee,n,Plateau,H).
 getCoupPossible((Case,O), [(Case,Arrivee,s)], P) :- Arrivee is Case - 10,
 												\+ verifier_case_vide(Arrivee, P).
-												%poussee_possible(Arrivee,s,Plateau,H).
+												poussee_possible(Arrivee,s,Plateau,H).
 getCoupPossible((Case,O), [(Case,Arrivee,e)], P) :- Arrivee is Case + 1,
 												\+ verifier_case_vide(Arrivee, P).
-												%poussee_possible(Arrivee,e,Plateau,H).
+												poussee_possible(Arrivee,e,Plateau,H).
 getCoupPossible((Case,O), [(Case,Arrivee,w)], P) :- Arrivee is Case - 1,
 												\+ verifier_case_vide(Arrivee, P),
-												orientation_opposee
-												%poussee_possible(Arrivee,w,Plateau,H).
+												poussee_possible(Arrivee,w,Plateau,H).
 								
 produireListeEntree([], [], _).
 produireListeEntree([T|Q], [(0,T,n),(0,T,e),(0,T,s),(0,T,w)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), verifier_case_vide(T, P).
@@ -76,32 +75,59 @@ getAllCoups(Case, Arrivee, [(Case,Arrivee,n),(Case,Arrivee,e),(Case,Arrivee,s),(
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-meilleur_coup(Plateau, ListeCoups, Coup) :- calculer_etat(Plateau),
-											comparer_etat(Plateau, ListeCoups, Max).
+meilleur_coup(Plateau, Coups, Coup) :- calculer_etat(Plateau, Total),
+										comparer_etat(Plateau, ListeCoups, Total, Coup).
+										
+comparer_etat(_, [], Max, Coup) :- !.
+comparer_etat(Plateau, [Coup1|Coups], Max, Coup1) :- comparer_etat(Plateau, Coups, Max, Coup),
+													calculer_etat(Coup1, TmpMax),
+													TmpMax > Max.
+comparer_etat(Plateau, [Coup1|Coups], Max, Coup) :- comparer_etat(Plateau, Coups, Max, Coup),
+													calculer_etat(Coup1, TmpMax),
+													TmpMax < Max.
 											
 calculer_etat([E,R,M,e], Total) :- total_montagnes_placees(M, NB),
 							total_pro_joueur(E, M, NB_PRO),
 							total_pro_joueur(R, M, NB_CON),
 							Tmp is NB + NB_PRO,
 							Total is Tmp - NB_CON.
-calculer_etat([E,R,M,r]) :- total_montagnes_placees(M, NB),
+calculer_etat([E,R,M,r], Total) :- total_montagnes_placees(M, NB),
 							total_pro_joueur(R, M, NB_PRO),
 							total_pro_joueur(E, M, NB_CON),
 							Tmp is NB + NB_PRO,
 							Total is Tmp - NB_CON.
 							
 total_montagnes_placees([], 0).
+total_montagnes_placees([0|M], Nb) :- total_montagnes_placees(M, TmpNb),
+										Nb is TmpNb + 16.
 total_montagnes_placees([33|M], Nb) :- total_montagnes_placees(M, TmpNb),
-										Nb is TmpNb + 3.
+										Nb is TmpNb + 2.
 total_montagnes_placees([M1|M], Nb) :- total_montagnes_placees(M, TmpNb),
 										casesExterieures(C),
 										member(M1,C), !,
-										Nb is TmpNb + 9.
+										Nb is TmpNb + 8.
 total_montagnes_placees([M1|M], Nb) :- total_montagnes_placees(M, TmpNb),
-										Nb is TmpNb + 6.
+										Nb is TmpNb + 4.
 										
 total_pro_joueur([], _, 0).										
-total_pro_joueur([Pion1|Pions], [M1,M2,M3], Nb) :- .
+total_pro_joueur([Pion1|Pions], [M1,M2,M3], Nb) :- total_pro_joueur(Pions, [M1,M2,M3], Tmp),
+													calculer_ecart(Pion1, M1, Ecart1),
+													NbTmp is Ecart1 + Tmp,
+													calculer_ecart(Pion1, M1, Ecart2),
+													NbTmp2 is Ecart2 + NbTmp,
+													calculer_ecart(Pion1, M1, Ecart3),
+													Nb is Ecart3 + NbTmp2.
+													
+calculer_ecart((Case,Orientation), Montagne, Ecart) :- Tmp is Montagne - Case,
+														Tmp > 0,
+														Div is Tmp / 10,
+														TmpEcart is 1 / Div,
+														Ecart is TmpEcart * 100.
+calculer_ecart((Case,Orientation), Montagne, Ecart) :- Tmp is Montagne - Case,
+														Tmp2 is Tmp * -1,
+														Div is Tmp2 / 10,
+														TmpEcart is 1 / Div,
+														Ecart is TmpEcart * 100.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
