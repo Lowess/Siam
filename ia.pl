@@ -32,8 +32,9 @@ coups_possibles_joueur([E,R,M,e], ListeCoups) :- write('Coups possibles ele'), n
 coups_possibles_joueur([E,R,M,r], ListeCoups) :- write('Coups possibles rhi'), nl, coups_possibles_pion(R, TmpCoups, [E,R,M,r]), flatten(TmpCoups, 													ListeCoups).
 
 coups_possibles_pion([],[], _).
-coups_possibles_pion([E1|E], [NewCoups|ListeCoups], P) :- write('Coups pion'), nl,														coups_possibles_pion(E, ListeCoups, P),
-													setof(Coups, getCoupPossible(E1, Coups, P), TmpCoups), flatten(TmpCoups,NewCoups).
+coups_possibles_pion([E1|E], [NewCoups|ListeCoups], P) :- coups_possibles_pion(E, ListeCoups, P),
+													write('Coups pion'), nl,
+													setof(Coups, getCoupPossible(E1, Coups, P), TmpCoups), flatten(TmpCoups,NewCoups), write(NewCoups), nl.
 
 %Coups possibles : Pion reste sur place mais change d'orientation
 getCoupPossible((Case, n), [(Case,Case,e),(Case,Case,s),(Case,Case,w)], _).
@@ -52,10 +53,11 @@ getCoupPossible((Case, Orientation), [(Case, 0, 0)], P) :- \+ Case = 0,
 															Arrivee4 is Case - 1,
 														\+ case_valide(Arrivee4).
 
-														
+%Coups possibles : Entree de plateau														
 getCoupPossible((0,_), ListeDeplacements, P) :- casesExterieures(L),
 											produireListeEntree(L , ListeDeplacements, P).
 
+%Coups possibles : Deplacements sur plateau sans poussee
 getCoupPossible((Case,_), L, P) :- Arrivee is Case + 10,
 								verifier_case_vide(Arrivee, P), getAllCoups(Case, Arrivee, L).
 getCoupPossible((Case,_), L, P) :- Arrivee is Case - 10,
@@ -64,6 +66,8 @@ getCoupPossible((Case,_), L, P) :- Arrivee is Case + 1,
 								verifier_case_vide(Arrivee, P), getAllCoups(Case, Arrivee, L).
 getCoupPossible((Case,_), L, P) :- Arrivee is Case - 1,
 								verifier_case_vide(Arrivee, P), getAllCoups(Case, Arrivee, L).
+								
+%Coups possibles : Deplacements sur plateau avec poussee
 getCoupPossible((Case,O), [(Case,Arrivee,n)], P) :- Arrivee is Case + 10, 
 												\+ verifier_case_vide(Arrivee, P),
 												verifier_arrivee(Case,Arrivee,n,P,H).
@@ -76,12 +80,14 @@ getCoupPossible((Case,O), [(Case,Arrivee,e)], P) :- Arrivee is Case + 1,
 getCoupPossible((Case,O), [(Case,Arrivee,w)], P) :- Arrivee is Case - 1,
 												\+ verifier_case_vide(Arrivee, P),
 												verifier_arrivee(Case,Arrivee,w,P,H).
-								
-produireListeEntree([], [], _) :- !.
+
+%Coups possibles : Entree
+produireListeEntree([], [], _).
+
+%Si case vide, possibilite de toutes orientations
 produireListeEntree([T|Q], [(0,T,n),(0,T,e),(0,T,s),(0,T,w)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), verifier_case_vide(T, P).
 																					
 %Coups possibles lors de l'entree lorsque case non vide.
-
 %Coins : orientations particulieres
 produireListeEntree([11|Q], [(0,11,n)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(11, P), verifier_arrivee(0,11,n,P,H).
 produireListeEntree([11|Q], [(0,11,e)|ListeDeplacements], P) :- produireListeEntree(Q, ListeDeplacements, P), \+ verifier_case_vide(11, P), verifier_arrivee(0,11,e,P,H).
